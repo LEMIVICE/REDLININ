@@ -16,7 +16,7 @@
             color: #EFEFEF;
             font-family: 'Roboto Condensed', sans-serif;
             overflow: hidden;
-            cursor: none;
+            /* cursor: none; */ /* Temporarily removed to debug cursor issue */
         }
 
         .font-orbitron {
@@ -839,19 +839,19 @@
             let isMusicInitialized = false;
 
             const playlist = [
-                { title: 'Apricot Hill Raceway', file: 'assets/music/Apricot Hill Raceway.mp3' },
-                { title: 'Autumn Ring', file: 'assets/music/Autumn Ring.mp3' },
-                { title: 'Complex String', file: 'assets/music/Complex String.mp3' },
-                { title: 'Deep Forest Raceway', file: 'assets/music/Deep Forest Raceway.mp3' },
-                { title: 'Grand Valley Speedway', file: 'assets/music/Grand Valley Speedway.mp3' },
+                { title: 'Apricot Hill Raceway', file: 'assets/music/Apricot%20Hill%20Raceway.mp3' },
+                { title: 'Autumn Ring', file: 'assets/music/Autumn%20Ring.mp3' },
+                { title: 'Complex String', file: 'assets/music/Complex%20String.mp3' },
+                { title: 'Deep Forest Raceway', file: 'assets/music/Deep%20Forest%20Raceway.mp3' },
+                { title: 'Grand Valley Speedway', file: 'assets/music/Grand%20Valley%20Speedway.mp3' },
                 { title: 'Grindelwald', file: 'assets/music/Grindelwald.mp3' },
-                { title: 'High Speed Ring', file: 'assets/music/High Speed Ring.mp3' },
-                { title: 'Mid-Field Raceway', file: 'assets/music/Mid-Field Raceway.mp3' },
-                { title: 'Red Rock Valley Speedway', file: 'assets/music/Red Rock Valley Speedway.mp3' },
-                { title: 'Special Stage Route 5', file: 'assets/music/Special Stage Route 5.mp3' },
-                { title: 'Special Stage Route 11', file: 'assets/music/Special Stage Route 11.mp3' },
-                { title: 'Tahiti Road', file: 'assets/music/Tahiti Road.mp3' },
-                { title: 'Trail Mountain', file: 'assets/music/Trail Mountain.mp3' },
+                { title: 'High Speed Ring', file: 'assets/music/High%20Speed%20Ring.mp3' },
+                { title: 'Mid-Field Raceway', file: 'assets/music/Mid-Field%20Raceway.mp3' },
+                { title: 'Red Rock Valley Speedway', file: 'assets/music/Red%20Rock%20Valley%20Speedway.mp3' },
+                { title: 'Special Stage Route 5', file: 'assets/music/Special%20Stage%20Route%205.mp3' },
+                { title: 'Special Stage Route 11', file: 'assets/music/Special%20Stage%20Route%2011.mp3' },
+                { title: 'Tahiti Road', file: 'assets/music/Tahiti%20Road.mp3' },
+                { title: 'Trail Mountain', file: 'assets/music/Trail%20Mountain.mp3' },
             ];
 
             const playPauseBtn = document.getElementById('play-pause-btn');
@@ -886,10 +886,13 @@
                         hqLobby.classList.remove('hidden');
                         currentState = 'hq-lobby';
                         fetchRaceNews();
-                        if (!isMusicInitialized && audioContext.state === 'running') {
-                             isMusicInitialized = true;
-                             loadTrack(currentTrackIndex);
+                        if (audioContext.state === 'running' && !isMusicInitialized) {
+                            isMusicInitialized = true;
+                            loadTrack(currentTrackIndex);
+                        } else if (isPlaying === false && isMusicInitialized) {
+                            playTrack();
                         }
+
                     } else if (targetState.startsWith('department-')) {
                         departmentView.classList.remove('hidden');
                         currentState = 'department';
@@ -1085,10 +1088,11 @@
             function loadTrack(index) {
                 if (animationFrameId) cancelAnimationFrame(animationFrameId);
                 if (audioSource) {
-                    audioSource.stop();
+                    try { audioSource.stop(); } catch (e) {}
                 }
                 isPlaying = false;
                 startOffset = 0;
+                audioBuffer = null; // Clear previous buffer
                 playPauseBtn.textContent = '▶';
                 trackDisplay.textContent = 'LOADING...';
 
@@ -1111,27 +1115,28 @@
             }
 
             function playTrack() {
+                if (!audioBuffer) return; // Don't play if buffer isn't ready
                 if (audioContext.state === 'suspended') {
                     audioContext.resume();
                 }
                 if (isPlaying) {
-                    audioSource.stop();
+                   try { audioSource.stop(); } catch (e) {}
                 }
                 
                 audioSource = audioContext.createBufferSource();
                 audioSource.buffer = audioBuffer;
                 audioSource.connect(gainNode);
 
-                audioStartTime = audioContext.currentTime;
-                audioSource.start(0, startOffset % audioBuffer.duration);
+                audioStartTime = audioContext.currentTime - startOffset;
+                audioSource.start(0, startOffset);
                 isPlaying = true;
                 playPauseBtn.textContent = '⏸';
                 
                 updateLoop();
                 
                 audioSource.onended = () => {
-                     // Check if it ended naturally
-                    if (isPlaying && startOffset >= audioBuffer.duration - 0.1) {
+                     // Check if it ended naturally (not from being stopped)
+                    if (isPlaying && (audioContext.currentTime - audioStartTime) >= audioBuffer.duration) {
                         playNext();
                     }
                 };
@@ -1140,26 +1145,21 @@
             function pauseTrack() {
                 if (!isPlaying) return;
                 cancelAnimationFrame(animationFrameId);
-                audioSource.stop();
-                startOffset += audioContext.currentTime - audioStartTime;
+                startOffset = audioContext.currentTime - audioStartTime;
+                try { audioSource.stop(); } catch (e) {}
                 isPlaying = false;
                 playPauseBtn.textContent = '▶';
             }
 
             function updateLoop() {
-                if (isPlaying) {
+                if (isPlaying && audioBuffer) {
                     const elapsedTime = audioContext.currentTime - audioStartTime;
-                    const newPosition = startOffset + elapsedTime;
-                    seekSlider.value = newPosition;
+                    seekSlider.value = elapsedTime;
                     
                     const duration = audioBuffer ? Math.floor(audioBuffer.duration) : 0;
-                    timeDisplay.textContent = `${formatTime(newPosition)} / ${formatTime(duration)}`;
+                    timeDisplay.textContent = `${formatTime(elapsedTime)} / ${formatTime(duration)}`;
 
-                    if (newPosition >= audioBuffer.duration) {
-                        playNext();
-                    } else {
-                       animationFrameId = requestAnimationFrame(updateLoop);
-                    }
+                    animationFrameId = requestAnimationFrame(updateLoop);
                 }
             }
             
@@ -1173,19 +1173,138 @@
             }
 
             function playPrev() {
-                currentTrackIndex--;
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume().then(() => {
-                       if (!audioBuffer) loadTrack(currentTrackIndex);
-                       else if (!isPlaying) playTrack();
-                    });
-                    return;
-                }
+                currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
                 loadTrack(currentTrackIndex);
             }
 
             playPauseBtn.addEventListener('click', () => {
                 if (audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        if (!audioBuffer) {
+                            loadTrack(currentTrackIndex);
+                        } else if (!isPlaying) {
+                            playTrack();
+                        } else {
+                            pauseTrack();
+                        }
+                    });
+                } else {
+                    if (!audioBuffer) {
+                        loadTrack(currentTrackIndex);
+                    } else if (isPlaying) {
+                        pauseTrack();
+                    } else {
+                        playTrack();
+                    }
+                }
+            });
+
+            nextBtn.addEventListener('click', playNext);
+            prevBtn.addEventListener('click', playPrev);
+
+            volumeSlider.addEventListener('input', e => {
+                 if (gainNode) {
+                    gainNode.gain.value = e.target.value / 100;
+                 }
+            });
+
+            seekSlider.addEventListener('input', () => {
+                if (!audioBuffer) return;
+                cancelAnimationFrame(animationFrameId);
+                startOffset = parseFloat(seekSlider.value);
+                audioStartTime = audioContext.currentTime - startOffset;
+                if (isPlaying) {
+                    playTrack();
+                }
+            });
+            
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
+                return `${minutes}:${secs}`;
+            }
+
+            // Draggable MP3 Player
+            mp3Player.querySelector('#mp3-header').addEventListener('mousedown', (e) => {
+                isDragging = true;
+                offsetX = e.clientX - mp3Player.offsetLeft;
+                offsetY = e.clientY - mp3Player.offsetTop;
+                mp3Player.style.cursor = 'grabbing';
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    mp3Player.style.left = (e.clientX - offsetX) + 'px';
+                    mp3Player.style.top = (e.clientY - offsetY) + 'px';
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                mp3Player.style.cursor = 'grab';
+            });
+
+
+            // --- Main Menu Navigation ---
+            function updateMenuSelection() {
+                document.querySelectorAll('.menu-option').forEach((el, index) => {
+                    if (index === currentMenuSelection) {
+                        el.classList.add('selected');
+                    } else {
+                        el.classList.remove('selected');
+                    }
+                });
+            }
+
+            menuOptionNewGame.addEventListener('mouseover', () => {
+                currentMenuSelection = 0;
+                updateMenuSelection();
+            });
+
+            menuOptionSettings.addEventListener('mouseover', () => {
+                currentMenuSelection = 1;
+                updateMenuSelection();
+            });
+
+            menuOptionNewGame.addEventListener('click', () => {
+                if (currentState === 'main-menu') {
+                    transition('hq-lobby');
+                }
+            });
+
+            menuOptionSettings.addEventListener('click', () => {
+                if (currentState === 'main-menu') {
+                    transition('department-settings');
+                }
+            });
+
+
+            // Event listener for keyboard navigation
+            window.addEventListener('keydown', (e) => {
+                if (currentState === 'main-menu') {
+                    if (e.key === 'ArrowUp' || e.key === 'w') {
+                        currentMenuSelection = (currentMenuSelection - 1 + menuOptions.length) % menuOptions.length;
+                        updateMenuSelection();
+                    } else if (e.key === 'ArrowDown' || e.key === 's') {
+                        currentMenuSelection = (currentMenuSelection + 1) % menuOptions.length;
+                        updateMenuSelection();
+                    } else if (e.key === 'Enter') {
+                        const selectedOption = menuOptions[currentMenuSelection];
+                        if (selectedOption === 'new-game') {
+                            transition('hq-lobby');
+                        } else if (selectedOption === 'settings') {
+                            transition('department-settings'); // Placeholder for settings page
+                        }
+                    }
+                }
+            });
+
+
+            // --- Event Listeners for Navigation ---
+            pressStart.addEventListener('click', () => {
+                 if (currentState === 'title') {
+                    // This first user interaction is crucial for unmuting audio
+                    if (audioContext.state === 'suspended') {
                          audioContext.resume();
                     }
                     transition('main-menu');
@@ -1229,5 +1348,4 @@
 </body>
 
 </html>
-
 
