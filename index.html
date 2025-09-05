@@ -154,6 +154,7 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 1rem;
             letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         /* HQ Lobby Styling */
@@ -648,7 +649,7 @@
     <!-- Loading Screen -->
     <div id="loading-screen" class="hidden">
         <div id="loading-icon"></div>
-        <p id="loading-text">Now loading...</p>
+        <p id="loading-text">NOW LOADING</p>
     </div>
 
     <!-- Main HQ Hub -->
@@ -825,11 +826,17 @@
             const mp3Player = document.getElementById('mp3-player');
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             let audioSource;
+            let gainNode; // Keep gainNode accessible
             let audioBuffer;
             let isPlaying = false;
             let currentTrackIndex = 0;
             let isDragging = false;
             let offsetX, offsetY;
+            
+            let audioStartTime = 0;
+            let startOffset = 0;
+            let animationFrameId;
+            let isMusicInitialized = false;
 
             const playlist = [
                 { title: 'Apricot Hill Raceway', file: 'assets/music/Apricot Hill Raceway.mp3' },
@@ -879,8 +886,9 @@
                         hqLobby.classList.remove('hidden');
                         currentState = 'hq-lobby';
                         fetchRaceNews();
-                        if (audioBuffer && !isPlaying && audioContext.state === 'running') {
-                             // If music was loaded but paused, don't auto-resume
+                        if (!isMusicInitialized && audioContext.state === 'running') {
+                             isMusicInitialized = true;
+                             loadTrack(currentTrackIndex);
                         }
                     } else if (targetState.startsWith('department-')) {
                         departmentView.classList.remove('hidden');
@@ -888,11 +896,9 @@
                         const department = targetState.split('-')[1];
                         departmentHeader.textContent = `THE ${department.toUpperCase().replace('QLSIM', 'QL SIMULATOR')}`;
                         
-                        // Stop lobby music when entering a department
+                        // Pause lobby music when entering a department
                         if (isPlaying) {
-                            audioSource.stop();
-                            isPlaying = false;
-                            playPauseBtn.textContent = '▶';
+                            pauseTrack();
                         }
                         
                         // Handle department specific setups
@@ -1063,11 +1069,26 @@
 
 
             // --- MP3 Player Logic ---
+            // Setup gain node once
+            gainNode = audioContext.createGain();
+            gainNode.connect(audioContext.destination);
+            gainNode.gain.value = volumeSlider.value / 100;
+
+            function shufflePlaylist() {
+                for (let i = playlist.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [playlist[i], playlist[j]] = [playlist[j], playlist[i]];
+                }
+            }
+
+
             function loadTrack(index) {
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
                 if (audioSource) {
                     audioSource.stop();
                 }
                 isPlaying = false;
+                startOffset = 0;
                 playPauseBtn.textContent = '▶';
                 trackDisplay.textContent = 'LOADING...';
 
@@ -1077,7 +1098,8 @@
                     .then(decodedBuffer => {
                         audioBuffer = decodedBuffer;
                         trackDisplay.textContent = `TRACK: ${playlist[index].title.toUpperCase()}`;
-                        updateSeekSlider();
+                        seekSlider.max = audioBuffer.duration;
+                        seekSlider.value = 0;
                         if (audioContext.state === 'running') {
                            playTrack();
                         }
@@ -1092,174 +1114,80 @@
                 if (audioContext.state === 'suspended') {
                     audioContext.resume();
                 }
-                
                 if (isPlaying) {
                     audioSource.stop();
                 }
-
+                
                 audioSource = audioContext.createBufferSource();
                 audioSource.buffer = audioBuffer;
-                
-                const gainNode = audioContext.createGain();
-                gainNode.gain.value = volumeSlider.value / 100;
+                audioSource.connect(gainNode);
 
-                audioSource.connect(gainNode).connect(audioContext.destination);
-                audioSource.start(0, seekSlider.value);
+                audioStartTime = audioContext.currentTime;
+                audioSource.start(0, startOffset % audioBuffer.duration);
                 isPlaying = true;
                 playPauseBtn.textContent = '⏸';
                 
+                updateLoop();
+                
                 audioSource.onended = () => {
-                    if (seekSlider.value >= audioBuffer.duration - 0.1) { // If track finished naturally
+                     // Check if it ended naturally
+                    if (isPlaying && startOffset >= audioBuffer.duration - 0.1) {
                         playNext();
                     }
                 };
             }
+
+            function pauseTrack() {
+                if (!isPlaying) return;
+                cancelAnimationFrame(animationFrameId);
+                audioSource.stop();
+                startOffset += audioContext.currentTime - audioStartTime;
+                isPlaying = false;
+                playPauseBtn.textContent = '▶';
+            }
+
+            function updateLoop() {
+                if (isPlaying) {
+                    const elapsedTime = audioContext.currentTime - audioStartTime;
+                    const newPosition = startOffset + elapsedTime;
+                    seekSlider.value = newPosition;
+                    
+                    const duration = audioBuffer ? Math.floor(audioBuffer.duration) : 0;
+                    timeDisplay.textContent = `${formatTime(newPosition)} / ${formatTime(duration)}`;
+
+                    if (newPosition >= audioBuffer.duration) {
+                        playNext();
+                    } else {
+                       animationFrameId = requestAnimationFrame(updateLoop);
+                    }
+                }
+            }
             
             function playNext() {
-                currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+                currentTrackIndex++;
+                if (currentTrackIndex >= playlist.length) {
+                    currentTrackIndex = 0;
+                    shufflePlaylist(); // Re-shuffle when the playlist loops
+                }
                 loadTrack(currentTrackIndex);
             }
 
             function playPrev() {
-                currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+                currentTrackIndex--;
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                       if (!audioBuffer) loadTrack(currentTrackIndex);
+                       else if (!isPlaying) playTrack();
+                    });
+                    return;
+                }
                 loadTrack(currentTrackIndex);
             }
 
             playPauseBtn.addEventListener('click', () => {
                 if (audioContext.state === 'suspended') {
-                    audioContext.resume().then(() => {
-                       if (!audioBuffer) loadTrack(currentTrackIndex);
-                    });
-                }
-
-                if (!audioBuffer) {
-                    loadTrack(currentTrackIndex);
-                    return;
-                }
-
-                if (isPlaying) {
-                    audioSource.stop();
-                    isPlaying = false;
-                    playPauseBtn.textContent = '▶';
-                } else {
-                    playTrack();
-                }
-            });
-
-            nextBtn.addEventListener('click', playNext);
-            prevBtn.addEventListener('click', playPrev);
-
-            volumeSlider.addEventListener('input', e => {
-                 // The gainNode is created inside playTrack, so we can't adjust it directly here.
-                 // For this simple player, volume is applied when the next track plays or seeking happens.
-                 // A more complex implementation would keep the gainNode accessible.
-            });
-
-            seekSlider.addEventListener('input', () => {
-                if (isPlaying) {
-                    playTrack();
-                }
-            });
-            
-            function updateSeekSlider() {
-                if(audioBuffer) {
-                    seekSlider.max = audioBuffer.duration;
-                    setInterval(() => {
-                        if (isPlaying) {
-                            seekSlider.value = audioSource.context.currentTime - audioSource.startTime + parseFloat(seekSlider.value);
-                            const currentTime = Math.floor(seekSlider.value);
-                            const duration = Math.floor(audioBuffer.duration);
-                            timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
-                        }
-                    }, 1000);
-                }
-            }
-            
-            function formatTime(seconds) {
-                const minutes = Math.floor(seconds / 60);
-                const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
-                return `${minutes}:${secs}`;
-            }
-
-            // Draggable MP3 Player
-            mp3Player.querySelector('#mp3-header').addEventListener('mousedown', (e) => {
-                isDragging = true;
-                offsetX = e.clientX - mp3Player.offsetLeft;
-                offsetY = e.clientY - mp3Player.offsetTop;
-                mp3Player.style.cursor = 'grabbing';
-            });
-            
-            document.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    mp3Player.style.left = (e.clientX - offsetX) + 'px';
-                    mp3Player.style.top = (e.clientY - offsetY) + 'px';
-                }
-            });
-            
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-                mp3Player.style.cursor = 'grab';
-            });
-
-
-            // --- Main Menu Navigation ---
-            function updateMenuSelection() {
-                document.querySelectorAll('.menu-option').forEach((el, index) => {
-                    if (index === currentMenuSelection) {
-                        el.classList.add('selected');
-                    } else {
-                        el.classList.remove('selected');
+                         audioContext.resume();
                     }
-                });
-            }
-
-            menuOptionNewGame.addEventListener('mouseover', () => {
-                currentMenuSelection = 0;
-                updateMenuSelection();
-            });
-
-            menuOptionSettings.addEventListener('mouseover', () => {
-                currentMenuSelection = 1;
-                updateMenuSelection();
-            });
-
-            menuOptionNewGame.addEventListener('click', () => {
-                if (currentState === 'main-menu') {
-                    transition('hq-lobby');
-                }
-            });
-
-            menuOptionSettings.addEventListener('click', () => {
-                if (currentState === 'main-menu') {
-                    transition('department-settings');
-                }
-            });
-
-
-            // Event listener for keyboard navigation
-            window.addEventListener('keydown', (e) => {
-                if (currentState === 'main-menu') {
-                    if (e.key === 'ArrowUp' || e.key === 'w') {
-                        currentMenuSelection = (currentMenuSelection - 1 + menuOptions.length) % menuOptions.length;
-                        updateMenuSelection();
-                    } else if (e.key === 'ArrowDown' || e.key === 's') {
-                        currentMenuSelection = (currentMenuSelection + 1) % menuOptions.length;
-                        updateMenuSelection();
-                    } else if (e.key === 'Enter') {
-                        const selectedOption = menuOptions[currentMenuSelection];
-                        if (selectedOption === 'new-game') {
-                            transition('hq-lobby');
-                        } else if (selectedOption === 'settings') {
-                            transition('department-settings'); // Placeholder for settings page
-                        }
-                    }
-                }
-            });
-
-
-            // --- Event Listeners for Navigation ---
-            pressStart.addEventListener('click', () => {
-                if (currentState === 'title') {
                     transition('main-menu');
                 }
             });
@@ -1278,6 +1206,8 @@
             });
 
             // --- Initial Boot Sequence ---
+            shufflePlaylist(); // Shuffle playlist on initial load
+
             setTimeout(() => {
                 lvScreen.classList.add('hidden');
                 pubScreen.classList.remove('hidden');
@@ -1299,4 +1229,5 @@
 </body>
 
 </html>
+
 
