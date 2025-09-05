@@ -8,15 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* Embedding the custom Draco font */
-        @font-face {
-            font-family: 'Draco';
-            src: url(data:font/opentype;base64,T1RUTwAKALgABwQAAAAABoAAAAIAAQALAJAAAA....AAEAAAABAAQAAAEAAAAAAAABAAEAAAAA) format('opentype');
-            /* The full Base64 string is extremely long and has been truncated here for readability */
-        }
-
         /* Custom Styles for the "Digital Redline" Aesthetic */
         body {
             background-color: #000000;
@@ -26,39 +19,156 @@
             cursor: none;
         }
 
-        .font-draco {
-            font-family: 'Draco', sans-serif;
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
         }
 
         .hidden {
             display: none !important;
         }
 
-        /* ... existing styles ... */
+        .opacity-0 {
+            opacity: 0;
+        }
+
+        .transition-opacity {
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .transition-transform {
+            transition: transform 0.5s ease-in-out;
+        }
+
+        /* Boot Sequence Styling */
+        #boot-sequence .boot-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000;
+        }
+
+        #lv-emblem-screen img {
+            width: 80px;
+            animation: fadeInOut 3s forwards;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
 
         #publisher-screen .logo {
-            font-family: 'Draco', sans-serif;
+            font-family: 'Orbitron', sans-serif;
             font-size: 2rem;
             color: #40E0D0;
             text-shadow: 0 0 5px #40E0D0;
             animation: fadeInOut 3s forwards;
         }
         
-        /* ... existing styles ... */
+        /* Main Title Screen */
+        #title-screen {
+            background-image: url('assets/start_menu_bg.png');
+            background-size: cover;
+            background-position: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #redlinin-logo {
+            position: absolute;
+            width: 40%;
+            max-width: 500px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(5);
+            opacity: 0;
+        }
         
         #press-start {
             position: absolute;
             bottom: 20%;
             left: 50%;
             transform: translateX(-50%);
-            font-family: 'Draco', sans-serif;
+            font-family: 'Orbitron', sans-serif;
             font-size: 1.5rem;
             color: #EFEFEF;
             text-shadow: 0 0 10px #FF2D00;
             animation: blink 1s infinite;
         }
 
-        /* ... existing styles ... */
+        @keyframes slam-in {
+            to {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Loading Screen */
+        #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            z-index: 100;
+        }
+
+        #loading-icon {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-image: url('assets/gold_wheel_icon.png');
+            background-size: contain;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* HQ Lobby Styling */
+        #hq-lobby {
+            background-image: url('assets/hq_lobby_bg.png');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .hotspot {
+            position: absolute;
+            background-color: rgba(255, 45, 0, 0);
+            border: 2px solid rgba(64, 224, 208, 0);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 0px #40E0D0;
+        }
+
+        .hotspot:hover {
+            background-color: rgba(255, 45, 0, 0.3);
+            border: 2px solid #40E0D0;
+            box-shadow: 0 0 20px #40E0D0;
+        }
 
         .hotspot-label {
             position: absolute;
@@ -70,7 +180,7 @@
             padding: 5px 10px;
             border-left: 3px solid #FF2D00;
             color: #EFEFEF;
-            font-family: 'Draco', sans-serif;
+            font-family: 'Orbitron', sans-serif;
             font-weight: 700;
             letter-spacing: 2px;
             opacity: 0;
@@ -78,14 +188,27 @@
             pointer-events: none;
         }
 
-        /* ... existing styles ... */
+        .hotspot:hover .hotspot-label {
+            opacity: 1;
+        }
+        
+        /* Department View */
+        #department-view {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-size: cover;
+            background-position: center;
+        }
         
         #department-header {
              position: absolute;
              top: 5%;
              left: 50%;
              transform: translateX(-50%);
-             font-family: 'Draco', sans-serif;
+             font-family: 'Orbitron', sans-serif;
              font-size: 2rem;
              color: #EFEFEF;
              background-color: rgba(0,0,0,0.7);
@@ -99,7 +222,7 @@
             bottom: 5%;
             left: 50%;
             transform: translateX(-50%);
-            font-family: 'Draco', sans-serif;
+            font-family: 'Orbitron', sans-serif;
             font-size: 1.2rem;
             color: #EFEFEF;
             background-color: #000;
@@ -110,7 +233,39 @@
             transition: all 0.3s ease;
         }
         
-        /* ... existing styles ... */
+        #back-button:hover {
+            background-color: #40E0D0;
+            color: #000;
+            box-shadow: 0 0 15px #40E0D0;
+        }
+        
+        /* Custom Cursor */
+        #cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #40E0D0;
+            border-radius: 50%;
+            position: fixed;
+            z-index: 9999;
+            pointer-events: none;
+            box-shadow: 0 0 5px #40E0D0;
+            transition: transform 0.1s ease-out;
+        }
+        
+        #cursor-ring {
+            width: 30px;
+            height: 30px;
+            border: 2px solid #EFEFEF;
+            border-radius: 50%;
+            position: fixed;
+            z-index: 9999;
+            pointer-events: none;
+            transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+        }
+        
+        body:hover #cursor-ring {
+            opacity: 1;
+        }
         
         /* Main Menu */
         #main-menu {
@@ -125,7 +280,7 @@
         }
 
         .menu-option {
-            font-family: 'Draco', sans-serif;
+            font-family: 'Orbitron', sans-serif;
             font-size: 2.5rem;
             color: #EFEFEF;
             text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
@@ -135,16 +290,47 @@
             border: 2px solid transparent;
         }
         
-        /* ... existing styles ... */
+        .menu-option.selected {
+            color: #FF2D00;
+            text-shadow: 0 0 15px #FF2D00;
+            border: 2px solid #FF2D00;
+        }
+
+        /* News Ticker */
+        #news-ticker-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-top: 2px solid #FF2D00;
+            height: 40px;
+            overflow: hidden;
+        }
+
+        #news-ticker {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            white-space: nowrap;
+            animation: marquee 60s linear infinite;
+        }
 
         #news-ticker p {
             padding: 0 50px;
-            font-family: 'Draco', sans-serif;
+            font-family: 'Orbitron', sans-serif;
             font-size: 1rem;
             color: #EFEFEF;
         }
 
-        /* ... existing styles ... */
+        #news-ticker .cyan {
+            color: #40E0D0;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-100%); }
+        }
 
         /* MP3 Player */
         #mp3-player {
@@ -156,12 +342,132 @@
             border: 2px solid #40E0D0;
             border-radius: 8px;
             box-shadow: 0 0 20px rgba(64, 224, 208, 0.3);
-            font-family: 'Draco', sans-serif;
+            font-family: 'Orbitron', sans-serif;
             user-select: none;
             z-index: 50;
         }
-        /* ... existing styles ... */
+
+        #mp3-header {
+            background-color: #222;
+            padding: 5px 10px;
+            cursor: move;
+            border-bottom: 2px solid #40E0D0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #mp3-header img {
+            height: 15px;
+        }
+
+        #mp3-body {
+            padding: 15px;
+        }
         
+        #track-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        #album-art {
+            width: 60px;
+            height: 60px;
+            margin-right: 10px;
+            border: 1px solid #40E0D0;
+        }
+
+        #track-display {
+            color: #EFEFEF;
+            text-align: center;
+            background-color: #000;
+            padding: 5px;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .slider-container {
+            margin-bottom: 10px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #000;
+            border: 1px solid #40E0D0;
+            outline: none;
+            cursor: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #FF2D00;
+            cursor: none;
+            border: 1px solid #EFEFEF;
+        }
+
+        #controls {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        #controls button {
+            background: none;
+            border: none;
+            color: #EFEFEF;
+            font-size: 1.2rem;
+            cursor: none;
+            transition: color 0.2s ease;
+        }
+
+        #controls button:hover {
+            color: #FF2D00;
+        }
+        
+        /* Boiler Room & Puzzles */
+        .glitch-artifact {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: #FF2D00;
+            cursor: none;
+            z-index: 60;
+            animation: glitch-anim 1.5s infinite steps(8);
+        }
+
+        @keyframes glitch-anim {
+            0% { transform: translate(0, 0); opacity: 0.8; }
+            10% { transform: translate(-5px, 5px); }
+            20% { transform: translate(5px, -5px); }
+            30% { transform: translate(-5px, -5px); }
+            40% { transform: translate(5px, 5px); }
+            50% { opacity: 0.5; clip-path: inset(50% 0 0 0); }
+            60% { clip-path: inset(0 50% 50% 0); }
+            70% { clip-path: inset(25% 25% 25% 25%); }
+            80% { opacity: 1; }
+            90% { transform: skew(10deg, 10deg); }
+            100% { transform: translate(0, 0); opacity: 0.8; }
+        }
+
+        #boiler-room-hotspot {
+            bottom: 2%;
+            left: 2%;
+            width: 100px;
+            height: 50px;
+            border-radius: 5px;
+            background-color: rgba(100, 100, 100, 0.5);
+            border: 2px solid #555;
+            transform: perspective(100px) rotateX(45deg);
+        }
+
         #notification {
             position: absolute;
             top: 5%;
@@ -173,18 +479,110 @@
             border: 2px solid #40E0D0;
             border-radius: 5px;
             z-index: 200;
-            font-family: 'Draco', sans-serif;
+            font-family: 'Orbitron', sans-serif;
             font-size: 1.1rem;
             text-shadow: 0 0 5px #40E0D0;
         }
-        /* ... existing styles ... */
+        
+        #boiler-room {
+            background-image: url('assets/boiler_room_bg.png');
+        }
+
+        /* Hacking Console */
+        #hacking-console-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 150;
+        }
+        
+        #console-window {
+            width: 90%;
+            max-width: 800px;
+            height: 80%;
+            max-height: 600px;
+            background-image: url('assets/led_console.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            padding: 8% 10%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #console-output {
+            flex-grow: 1;
+            background-color: rgba(0, 20, 0, 0.8);
+            color: #00FF00;
+            font-family: 'Courier New', Courier, monospace;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #00FF00;
+        }
+        
+        #console-input-line {
+            display: flex;
+            padding-top: 10px;
+        }
+
+        #console-input-line span {
+            color: #00FF00;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        
+        #console-input {
+            flex-grow: 1;
+            border: none;
+            background: transparent;
+            color: #00FF00;
+            font-family: 'Courier New', Courier, monospace;
+            outline: none;
+        }
+        
+        #close-console {
+            position: absolute;
+            top: 12%;
+            right: 17%;
+            color: #FF2D00;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: none;
+        }
+        
+        /* DATALAB Navigation */
+        .datalab-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0,0,0,0.5);
+            border: 2px solid #40E0D0;
+            color: #40E0D0;
+            padding: 20px 10px;
+            font-size: 2rem;
+            cursor: none;
+            z-index: 160;
+            transition: all 0.2s ease;
+        }
+        .datalab-nav:hover {
+             background-color: #40E0D0;
+             color: #000;
+        }
+        #datalab-nav-left { left: 2%; }
+        #datalab-nav-right { right: 2%; }
 
         #access-terminal-button {
              position: absolute;
              bottom: 12%;
              left: 50%;
              transform: translateX(-50%);
-             font-family: 'Draco', sans-serif;
+             font-family: 'Orbitron', sans-serif;
              font-size: 1.2rem;
              color: #EFEFEF;
              background-color: #000;
@@ -194,16 +592,674 @@
              cursor: none;
              transition: all 0.3s ease;
         }
+        #access-terminal-button:hover {
+            background-color: #FF2D00;
+            color: #000;
+            box-shadow: 0 0 15px #FF2D00;
+        }
         
-        /* ... rest of the styles and full HTML/JS ... */
+        /* Fix for console showing up uninvited */
+        #hacking-console-container.hidden {
+            display: none !important;
+        }
+
     </style>
 </head>
 
 <body>
-    <!-- ... full HTML content ... -->
+    <!-- Custom Cursor -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-ring"></div>
+
+    <!-- Boot Sequence -->
+    <div id="boot-sequence">
+        <div id="lv-emblem-screen" class="boot-screen">
+             <img src="assets/lemi_vice_logo.png" alt="Lemi Vice Emblem">
+        </div>
+        <div id="publisher-screen" class="boot-screen hidden">
+            <h2 class="logo">REDLININ' Interactive</h2>
+        </div>
+    </div>
+
+    <!-- Main Title Screen -->
+    <div id="title-screen" class="hidden">
+        <img id="redlinin-logo" src="assets/redlinin_logo.png" alt="Redlinin Logo">
+        <h1 id="press-start" class="hidden">PRESS START</h1>
+    </div>
+
+    <!-- Main Menu -->
+    <div id="main-menu" class="hidden" style="width: 100vw; height: 100vh;">
+         <div id="menu-option-new-game" class="menu-option selected">NEW GAME</div>
+         <div id="menu-option-settings" class="menu-option">SETTINGS</div>
+    </div>
+
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="hidden">
+        <div id="loading-icon"></div>
+    </div>
+
+    <!-- Main HQ Hub -->
+    <div id="hq-lobby" class="hidden">
+        <!-- Hotspots -->
+        <div class="hotspot" style="top: 45%; left: 15%; width: 200px; height: 200px;" data-target="garage">
+            <div class="hotspot-label">THE GARAGE</div>
+        </div>
+        <div class="hotspot" style="top: 40%; left: 45%; width: 150px; height: 150px;" data-target="datalab">
+            <div class="hotspot-label">THE DATALAB</div>
+        </div>
+        <div class="hotspot" style="top: 25%; left: 60%; width: 100px; height: 250px;" data-target="lounge">
+            <div class="hotspot-label">THE LIQUID LOUNGE</div>
+        </div>
+        <div class="hotspot" style="top: 55%; left: 88%; width: 80px; height: 120px;" data-target="rally">
+            <div class="hotspot-label">THE RALLY DIVISION</div>
+        </div>
+        <div class="hotspot" style="top: 65%; left: 70%; width: 180px; height: 100px;" data-target="ql-sim">
+            <div class="hotspot-label">QL SIMULATOR</div>
+        </div>
+        
+        <!-- Boiler Room Puzzle Trigger -->
+        <div id="boiler-room-hotspot" class="hotspot hidden" data-target="boiler-room">
+             <div class="hotspot-label">ACCESS GRATE</div>
+        </div>
+        
+        <!-- News Ticker -->
+        <div id="news-ticker-container">
+            <div id="news-ticker"><p>Fetching race news...</p></div>
+        </div>
+
+        <!-- MP3 Player -->
+        <div id="mp3-player">
+            <div id="mp3-header">
+                <img src="assets/redlinin_logo.png" alt="Redlinin">
+                <span>SSM Player</span>
+            </div>
+            <div id="mp3-body">
+                 <div id="track-info">
+                     <img id="album-art" src="assets/REDLININ_HQ_MENU_MUSIC__ART_1080_v1.png" alt="Album Art">
+                     <div style="flex-grow: 1;">
+                        <div id="track-display">TRACK: NOT PLAYING</div>
+                        <div id="time-display" style="text-align:center; font-size: 0.8rem; color: #aaa;">0:00 / 0:00</div>
+                     </div>
+                 </div>
+
+                <div class="slider-container">
+                    <input type="range" id="seek-slider" min="0" max="100" value="0">
+                </div>
+                <div class="slider-container" style="display: flex; align-items: center; gap: 5px;">
+                    <span>VOL</span>
+                    <input type="range" id="volume-slider" min="0" max="100" value="50">
+                </div>
+                <div id="controls">
+                    <button id="prev-btn">⏮</button>
+                    <button id="play-pause-btn">▶</button>
+                    <button id="next-btn">⏭</button>
+                </div>
+            </div>
+             <!-- Puzzle 3 -->
+            <div id="puzzle-3" class="glitch-artifact" style="top: 5px; right: 5px; width:15px; height:15px;"></div>
+        </div>
+
+    </div>
+
+    <!-- Department View -->
+    <div id="department-view" class="hidden">
+        <h2 id="department-header">DEPARTMENT</h2>
+        <button id="back-button">RETURN TO HQ</button>
+        <!-- Puzzle 2 Placeholder -->
+        <div id="puzzle-2" class="glitch-artifact hidden" style="top: 80%; left: 10%;"></div>
+        <!-- DATALAB UI -->
+        <button id="datalab-nav-left" class="datalab-nav hidden">&lt;</button>
+        <button id="datalab-nav-right" class="datalab-nav hidden">&gt;</button>
+        <button id="access-terminal-button" class="hidden">ACCESS TERMINAL</button>
+    </div>
+
+    <!-- Hacking Console -->
+    <div id="hacking-console-container" class="hidden">
+        <div id="console-window">
+             <div id="console-output"></div>
+             <div id="console-input-line">
+                 <span>>&nbsp;</span>
+                 <input type="text" id="console-input" autofocus>
+             </div>
+        </div>
+        <button id="close-console">X</button>
+    </div>
+
+
+    <!-- Notification Area -->
+    <div id="notification" class="hidden"></div>
+    
+    <!-- Glitch Artifact for Main Menu -->
+    <div id="puzzle-1" class="glitch-artifact hidden" style="bottom: 5%; right: 5%;"></div>
+
+
+    <audio id="boiler-room-audio" loop>
+        <source src="assets/sfx/boiler_room_ambience.wav" type="audio/wav">
+    </audio>
+
+
     <script>
-        // ... full JavaScript content ...
+        document.addEventListener('DOMContentLoaded', () => {
+            const bootSeq = document.getElementById('boot-sequence');
+            const lvScreen = document.getElementById('lv-emblem-screen');
+            const pubScreen = document.getElementById('publisher-screen');
+            const titleScreen = document.getElementById('title-screen');
+            const redlininLogo = document.getElementById('redlinin-logo');
+            const pressStart = document.getElementById('press-start');
+            const loadingScreen = document.getElementById('loading-screen');
+            const hqLobby = document.getElementById('hq-lobby');
+            const departmentView = document.getElementById('department-view');
+            const departmentHeader = document.getElementById('department-header');
+            const backButton = document.getElementById('back-button');
+            const mainMenu = document.getElementById('main-menu');
+
+            // Custom Cursor
+            const cursorDot = document.getElementById('cursor-dot');
+            const cursorRing = document.getElementById('cursor-ring');
+
+            window.addEventListener('mousemove', e => {
+                cursorDot.style.left = e.clientX + 'px';
+                cursorDot.style.top = e.clientY + 'px';
+                cursorRing.style.left = (e.clientX - 13) + 'px';
+                cursorRing.style.top = (e.clientY - 13) + 'px';
+            });
+            
+            document.body.addEventListener('mousedown', () => cursorDot.style.transform = 'scale(2)');
+            document.body.addEventListener('mouseup', () => cursorDot.style.transform = 'scale(1)');
+
+
+            // --- Game State ---
+            let currentState = 'boot';
+            let currentMenuSelection = 0;
+            const menuOptions = ['new-game', 'settings'];
+            
+            // --- Puzzle State ---
+            const puzzleState = {
+                puzzle1: false,
+                puzzle2: false,
+                puzzle3: false,
+            };
+            
+            const puzzles = {
+                'puzzle-1': document.getElementById('puzzle-1'),
+                'puzzle-2': document.getElementById('puzzle-2'),
+                'puzzle-3': document.getElementById('puzzle-3'),
+            };
+
+            const boilerRoomHotspot = document.getElementById('boiler-room-hotspot');
+            const boilerRoomAudio = document.getElementById('boiler-room-audio');
+
+            // --- DATALAB State ---
+            let currentDatalabRoom = 0;
+            const datalabBackgrounds = [
+                'assets/datalab1.png',
+                'assets/datalab2.png',
+                'assets/datalab3.png'
+            ];
+            const datalabNavLeft = document.getElementById('datalab-nav-left');
+            const datalabNavRight = document.getElementById('datalab-nav-right');
+            const accessTerminalButton = document.getElementById('access-terminal-button');
+
+            // --- Hacking Console State ---
+            const hackingConsoleContainer = document.getElementById('hacking-console-container');
+            const consoleOutput = document.getElementById('console-output');
+            const consoleInput = document.getElementById('console-input');
+            const closeConsoleBtn = document.getElementById('close-console');
+
+            // --- MP3 Player State & Elements ---
+            const mp3Player = document.getElementById('mp3-player');
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            let audioSource;
+            let audioBuffer;
+            let isPlaying = false;
+            let currentTrackIndex = 0;
+            let isDragging = false;
+            let offsetX, offsetY;
+
+            const playlist = [
+                { title: 'Apricot Hill Raceway', file: 'assets/music/Apricot Hill Raceway.mp3' },
+                { title: 'Autumn Ring', file: 'assets/music/Autumn Ring.mp3' },
+                { title: 'Complex String', file: 'assets/music/Complex String.mp3' },
+                { title: 'Deep Forest Raceway', file: 'assets/music/Deep Forest Raceway.mp3' },
+                { title: 'Grand Valley Speedway', file: 'assets/music/Grand Valley Speedway.mp3' },
+                { title: 'Grindelwald', file: 'assets/music/Grindelwald.mp3' },
+                { title: 'High Speed Ring', file: 'assets/music/High Speed Ring.mp3' },
+                { title: 'Mid-Field Raceway', file: 'assets/music/Mid-Field Raceway.mp3' },
+                { title: 'Red Rock Valley Speedway', file: 'assets/music/Red Rock Valley Speedway.mp3' },
+                { title: 'Special Stage Route 5', file: 'assets/music/Special Stage Route 5.mp3' },
+                { title: 'Special Stage Route 11', file: 'assets/music/Special Stage Route 11.mp3' },
+                { title: 'Tahiti Road', file: 'assets/music/Tahiti Road.mp3' },
+                { title: 'Trail Mountain', file: 'assets/music/Trail Mountain.mp3' },
+            ];
+
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const prevBtn = document.getElementById('prev-btn');
+            const seekSlider = document.getElementById('seek-slider');
+            const volumeSlider = document.getElementById('volume-slider');
+            const trackDisplay = document.getElementById('track-display');
+            const timeDisplay = document.getElementById('time-display');
+
+            // --- Core Functions ---
+            
+            const transition = (targetState) => {
+                loadingScreen.classList.remove('hidden');
+                currentState = 'loading';
+                
+                // Stop any department-specific audio
+                boilerRoomAudio.pause();
+                boilerRoomAudio.currentTime = 0;
+
+                setTimeout(() => {
+                    // Hide all major screens
+                    [titleScreen, hqLobby, departmentView, mainMenu].forEach(el => el.classList.add('hidden'));
+                    
+                    // Hide department-specific UI
+                    puzzles['puzzle-2'].classList.add('hidden');
+                    datalabNavLeft.classList.add('hidden');
+                    datalabNavRight.classList.add('hidden');
+                    accessTerminalButton.classList.add('hidden');
+
+                    if (targetState === 'hq-lobby') {
+                        hqLobby.classList.remove('hidden');
+                        currentState = 'hq-lobby';
+                        fetchRaceNews();
+                        if (audioBuffer && !isPlaying && audioContext.state === 'running') {
+                             // If music was loaded but paused, don't auto-resume
+                        }
+                    } else if (targetState.startsWith('department-')) {
+                        departmentView.classList.remove('hidden');
+                        currentState = 'department';
+                        const department = targetState.split('-')[1];
+                        departmentHeader.textContent = `THE ${department.toUpperCase().replace('QLSIM', 'QL SIMULATOR')}`;
+                        
+                        // Stop lobby music when entering a department
+                        if (isPlaying) {
+                            audioSource.stop();
+                            isPlaying = false;
+                            playPauseBtn.textContent = '▶';
+                        }
+                        
+                        // Handle department specific setups
+                        if (department === 'datalab') {
+                            currentDatalabRoom = 0;
+                            setupDatalabRoom(currentDatalabRoom);
+                        } else if (department === 'boiler-room') {
+                            boilerRoomAudio.play();
+                            departmentView.style.backgroundImage = "url('assets/boiler_room_bg.png')";
+                        } else {
+                            // Placeholder for other departments
+                            departmentView.style.backgroundImage = "none";
+                            departmentView.style.backgroundColor = "#111";
+                        }
+
+
+                    } else if (targetState === 'main-menu') {
+                        mainMenu.classList.remove('hidden');
+                        puzzles['puzzle-1'].classList.remove('hidden');
+                        currentState = 'main-menu';
+                        updateMenuSelection();
+                    }
+
+                    loadingScreen.classList.add('hidden');
+                }, 1500);
+            };
+            
+            const showNotification = (text) => {
+                 const notification = document.getElementById('notification');
+                 notification.textContent = text;
+                 notification.classList.remove('hidden');
+                 setTimeout(() => {
+                     notification.classList.add('hidden');
+                 }, 3000);
+            };
+
+            const checkPuzzlesSolved = () => {
+                if (puzzleState.puzzle1 && puzzleState.puzzle2 && puzzleState.puzzle3) {
+                    showNotification('SECURITY GRATE UNLOCKED IN HQ LOBBY');
+                    boilerRoomHotspot.classList.remove('hidden');
+                }
+            };
+            
+            // --- Puzzle Logic ---
+            Object.keys(puzzles).forEach(key => {
+                puzzles[key].addEventListener('click', () => {
+                    const puzzleNum = key.split('-')[1];
+                    if (!puzzleState[key]) {
+                        puzzleState[key] = true;
+                        puzzles[key].classList.add('hidden');
+                        showNotification(`ARTIFACT FRAGMENT ${puzzleNum}/3 COLLECTED`);
+                        checkPuzzlesSolved();
+                    }
+                });
+            });
+            
+            // --- DATALAB Logic ---
+            function setupDatalabRoom(roomIndex) {
+                 departmentView.style.backgroundImage = `url(${datalabBackgrounds[roomIndex]})`;
+                 datalabNavLeft.classList.remove('hidden');
+                 datalabNavRight.classList.remove('hidden');
+
+                 // Puzzle & Terminal only in Room 2 (index 1)
+                 if (roomIndex === 1) {
+                     if (!puzzleState['puzzle-2']) {
+                         puzzles['puzzle-2'].classList.remove('hidden');
+                     }
+                     accessTerminalButton.classList.remove('hidden');
+                 } else {
+                     puzzles['puzzle-2'].classList.add('hidden');
+                     accessTerminalButton.classList.add('hidden');
+                 }
+            }
+            
+            datalabNavLeft.addEventListener('click', () => {
+                currentDatalabRoom = (currentDatalabRoom - 1 + datalabBackgrounds.length) % datalabBackgrounds.length;
+                setupDatalabRoom(currentDatalabRoom);
+            });
+            
+            datalabNavRight.addEventListener('click', () => {
+                currentDatalabRoom = (currentDatalabRoom + 1) % datalabBackgrounds.length;
+                setupDatalabRoom(currentDatalabRoom);
+            });
+
+            // --- Hacking Console Logic ---
+            accessTerminalButton.addEventListener('click', () => hackingConsoleContainer.classList.remove('hidden'));
+            closeConsoleBtn.addEventListener('click', () => hackingConsoleContainer.classList.add('hidden'));
+
+            consoleInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const command = consoleInput.value.trim().toUpperCase();
+                    typeToConsole(`> ${consoleInput.value}`);
+                    consoleInput.value = '';
+                    processCommand(command);
+                }
+            });
+
+            function typeToConsole(text, isResponse = false) {
+                const p = document.createElement('p');
+                if (isResponse) p.style.color = "#A98F64";
+                consoleOutput.appendChild(p);
+                let i = 0;
+                const interval = setInterval(() => {
+                    p.textContent += text[i];
+                    i++;
+                    consoleOutput.scrollTop = consoleOutput.scrollHeight;
+                    if (i === text.length) clearInterval(interval);
+                }, 20);
+            }
+
+            function processCommand(command) {
+                 setTimeout(() => {
+                    if (command === 'LV-GTS-MUSH') {
+                        typeToConsole('ACCESSING ARCHIVE LV-GTS-MUSH...', true);
+                        setTimeout(() => typeToConsole('DECRYPTING PAYLOAD...', true), 500);
+                        setTimeout(() => typeToConsole('DOWNLOAD COMPLETE. LINK: [placeholder_link]', true), 1500);
+                    } else if (command === 'REDLININ-PROTO-01') {
+                        typeToConsole('ACCESS GRANTED. DISPLAYING PROTOCOL 01...', true);
+                         setTimeout(() => typeToConsole('LORE: The REDLININ\' program was initiated to push the boundaries of sonic and automotive fusion. Early prototypes focused on raw energy transfer between engine harmonics and synthesized waveforms.', true), 500);
+                    } else {
+                        typeToConsole('ERROR: COMMAND NOT RECOGNIZED.', true);
+                    }
+                 }, 300);
+            }
+
+            // --- News Ticker Logic ---
+            async function fetchRaceNews() {
+                const ticker = document.getElementById('news-ticker');
+                const apiKey = ""; // Canvas will provide this
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const prompt = "Give me 5 very short, recent, and exciting news headlines from the world of motorsport, including F1, IndyCar, and GT racing. Format them as: 'SOURCE :: HEADLINE'. Use double colons as a separator.";
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: prompt }] }],
+                            tools: [{ "google_search": {} }],
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    
+                    const data = await response.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (text) {
+                        const headlines = text.split('\n').filter(line => line.includes('::'));
+                        let tickerContent = '';
+                        headlines.forEach(headline => {
+                            const parts = headline.split('::');
+                            if(parts.length > 1) {
+                                tickerContent += `<p><span class="cyan">${parts[0].trim()} ::</span> ${parts[1].trim()}</p>`;
+                            }
+                        });
+                        ticker.innerHTML = tickerContent.repeat(5); // Repeat for smooth scrolling
+                    } else {
+                         ticker.innerHTML = `<p>Could not retrieve live race data.</p>`;
+                    }
+                } catch (error) {
+                    console.error('Error fetching race news:', error);
+                    ticker.innerHTML = `<p>RACE DATA FEED OFFLINE // CHECK CONNECTION</p>`;
+                }
+            }
+
+
+            // --- MP3 Player Logic ---
+            function loadTrack(index) {
+                if (audioSource) {
+                    audioSource.stop();
+                }
+                isPlaying = false;
+                playPauseBtn.textContent = '▶';
+                trackDisplay.textContent = 'LOADING...';
+
+                fetch(playlist[index].file)
+                    .then(response => response.arrayBuffer())
+                    .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+                    .then(decodedBuffer => {
+                        audioBuffer = decodedBuffer;
+                        trackDisplay.textContent = `TRACK: ${playlist[index].title.toUpperCase()}`;
+                        updateSeekSlider();
+                        if (audioContext.state === 'running') {
+                           playTrack();
+                        }
+                    })
+                    .catch(e => {
+                        console.error('Error loading audio:', e);
+                        trackDisplay.textContent = 'ERROR LOADING TRACK';
+                    });
+            }
+
+            function playTrack() {
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                if (isPlaying) {
+                    audioSource.stop();
+                }
+
+                audioSource = audioContext.createBufferSource();
+                audioSource.buffer = audioBuffer;
+                
+                const gainNode = audioContext.createGain();
+                gainNode.gain.value = volumeSlider.value / 100;
+
+                audioSource.connect(gainNode).connect(audioContext.destination);
+                audioSource.start(0, seekSlider.value);
+                isPlaying = true;
+                playPauseBtn.textContent = '⏸';
+                
+                audioSource.onended = () => {
+                    if (seekSlider.value >= audioBuffer.duration - 0.1) { // If track finished naturally
+                        playNext();
+                    }
+                };
+            }
+            
+            function playNext() {
+                currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+                loadTrack(currentTrackIndex);
+            }
+
+            function playPrev() {
+                currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+                loadTrack(currentTrackIndex);
+            }
+
+            playPauseBtn.addEventListener('click', () => {
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                       if (!audioBuffer) loadTrack(currentTrackIndex);
+                    });
+                }
+
+                if (!audioBuffer) {
+                    loadTrack(currentTrackIndex);
+                    return;
+                }
+
+                if (isPlaying) {
+                    audioSource.stop();
+                    isPlaying = false;
+                    playPauseBtn.textContent = '▶';
+                } else {
+                    playTrack();
+                }
+            });
+
+            nextBtn.addEventListener('click', playNext);
+            prevBtn.addEventListener('click', playPrev);
+
+            volumeSlider.addEventListener('input', e => {
+                 // The gainNode is created inside playTrack, so we can't adjust it directly here.
+                 // For this simple player, volume is applied when the next track plays or seeking happens.
+                 // A more complex implementation would keep the gainNode accessible.
+            });
+
+            seekSlider.addEventListener('input', () => {
+                if (isPlaying) {
+                    playTrack();
+                }
+            });
+            
+            function updateSeekSlider() {
+                if(audioBuffer) {
+                    seekSlider.max = audioBuffer.duration;
+                    setInterval(() => {
+                        if (isPlaying) {
+                            seekSlider.value = audioSource.context.currentTime - audioSource.startTime + parseFloat(seekSlider.value);
+                            const currentTime = Math.floor(seekSlider.value);
+                            const duration = Math.floor(audioBuffer.duration);
+                            timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
+                        }
+                    }, 1000);
+                }
+            }
+            
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
+                return `${minutes}:${secs}`;
+            }
+
+            // Draggable MP3 Player
+            mp3Player.querySelector('#mp3-header').addEventListener('mousedown', (e) => {
+                isDragging = true;
+                offsetX = e.clientX - mp3Player.offsetLeft;
+                offsetY = e.clientY - mp3Player.offsetTop;
+                mp3Player.style.cursor = 'grabbing';
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    mp3Player.style.left = (e.clientX - offsetX) + 'px';
+                    mp3Player.style.top = (e.clientY - offsetY) + 'px';
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                mp3Player.style.cursor = 'grab';
+            });
+
+
+            // --- Main Menu Navigation ---
+            function updateMenuSelection() {
+                document.querySelectorAll('.menu-option').forEach((el, index) => {
+                    if (index === currentMenuSelection) {
+                        el.classList.add('selected');
+                    } else {
+                        el.classList.remove('selected');
+                    }
+                });
+            }
+
+            // Event listener for keyboard navigation
+            window.addEventListener('keydown', (e) => {
+                if (currentState === 'main-menu') {
+                    if (e.key === 'ArrowUp' || e.key === 'w') {
+                        currentMenuSelection = (currentMenuSelection - 1 + menuOptions.length) % menuOptions.length;
+                        updateMenuSelection();
+                    } else if (e.key === 'ArrowDown' || e.key === 's') {
+                        currentMenuSelection = (currentMenuSelection + 1) % menuOptions.length;
+                        updateMenuSelection();
+                    } else if (e.key === 'Enter') {
+                        const selectedOption = menuOptions[currentMenuSelection];
+                        if (selectedOption === 'new-game') {
+                            transition('hq-lobby');
+                        } else if (selectedOption === 'settings') {
+                            transition('department-settings'); // Placeholder for settings page
+                        }
+                    }
+                }
+            });
+
+
+            // --- Event Listeners for Navigation ---
+            pressStart.addEventListener('click', () => {
+                if (currentState === 'title') {
+                    transition('main-menu');
+                }
+            });
+            
+            document.querySelectorAll('.hotspot').forEach(hotspot => {
+                hotspot.addEventListener('click', () => {
+                    const target = hotspot.getAttribute('data-target');
+                    if (target) {
+                        transition(`department-${target}`);
+                    }
+                });
+            });
+            
+            backButton.addEventListener('click', () => {
+                transition('hq-lobby');
+            });
+
+            // --- Initial Boot Sequence ---
+            setTimeout(() => {
+                lvScreen.classList.add('hidden');
+                pubScreen.classList.remove('hidden');
+            }, 3000);
+
+            setTimeout(() => {
+                pubScreen.classList.add('hidden');
+                bootSeq.classList.add('hidden');
+                titleScreen.classList.remove('hidden');
+                currentState = 'title';
+
+                redlininLogo.style.animation = 'slam-in 0.5s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                setTimeout(() => {
+                    pressStart.classList.remove('hidden');
+                }, 500);
+            }, 6000);
+        });
     </script>
 </body>
+
 </html>
 
