@@ -145,6 +145,17 @@
             to { transform: translate(-50%, -50%) rotate(360deg); }
         }
 
+        #loading-text {
+            position: absolute;
+            top: calc(50% + 70px);
+            left: 50%;
+            transform: translateX(-50%);
+            color: #EFEFEF;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 2px;
+        }
+
         /* HQ Lobby Styling */
         #hq-lobby {
             background-image: url('assets/hq_lobby_bg.png');
@@ -637,6 +648,7 @@
     <!-- Loading Screen -->
     <div id="loading-screen" class="hidden">
         <div id="loading-icon"></div>
+        <p id="loading-text">Now loading...</p>
     </div>
 
     <!-- Main HQ Hub -->
@@ -753,6 +765,8 @@
             const departmentHeader = document.getElementById('department-header');
             const backButton = document.getElementById('back-button');
             const mainMenu = document.getElementById('main-menu');
+            const menuOptionNewGame = document.getElementById('menu-option-new-game');
+            const menuOptionSettings = document.getElementById('menu-option-settings');
 
             // Custom Cursor
             const cursorDot = document.getElementById('cursor-dot');
@@ -1198,6 +1212,29 @@
                     }
                 });
             }
+
+            menuOptionNewGame.addEventListener('mouseover', () => {
+                currentMenuSelection = 0;
+                updateMenuSelection();
+            });
+
+            menuOptionSettings.addEventListener('mouseover', () => {
+                currentMenuSelection = 1;
+                updateMenuSelection();
+            });
+
+            menuOptionNewGame.addEventListener('click', () => {
+                if (currentState === 'main-menu') {
+                    transition('hq-lobby');
+                }
+            });
+
+            menuOptionSettings.addEventListener('click', () => {
+                if (currentState === 'main-menu') {
+                    transition('department-settings');
+                }
+            });
+
 
             // Event listener for keyboard navigation
             window.addEventListener('keydown', (e) => {
