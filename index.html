@@ -200,12 +200,10 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 1rem;
             letter-spacing: 2px;
-            text-transform: uppercase;
         }
 
         /* HQ Lobby Styling */
         #hq-lobby {
-            background-image: url('assets/hq_lobby_bg.png');
             background-size: cover;
             background-position: center;
             position: relative;
@@ -221,6 +219,7 @@
             border-radius: 50%;
             transition: all 0.3s ease;
             box-shadow: 0 0 0px #40E0D0;
+            cursor: none;
         }
 
         .hotspot:hover {
@@ -250,6 +249,20 @@
         .hotspot:hover .hotspot-label {
             opacity: 1;
         }
+
+        /* Lobby Navigation */
+        .lobby-nav {
+            position: absolute;
+        }
+        #lobby-nav-1-to-2 {
+            border: 2px solid #40E0D0;
+            animation: pulse-cyan 2s infinite;
+        }
+        @keyframes pulse-cyan {
+            0% { box-shadow: 0 0 5px #40E0D0; }
+            50% { box-shadow: 0 0 25px #40E0D0; }
+            100% { box-shadow: 0 0 5px #40E0D0; }
+        }
         
         /* Department View */
         #department-view {
@@ -265,7 +278,7 @@
         
         #department-header {
              position: absolute;
-             top: 10%; /* Adjusted for HUD */
+             top: 10%;
              left: 50%;
              transform: translateX(-50%);
              font-family: 'Orbitron', sans-serif;
@@ -277,7 +290,7 @@
              border-bottom: 2px solid #FF2D00;
         }
         
-        #back-button {
+        .department-button {
             position: absolute;
             bottom: 5%;
             left: 50%;
@@ -287,16 +300,25 @@
             color: #EFEFEF;
             background-color: #000;
             padding: 10px 20px;
-            border: 2px solid #40E0D0;
             border-radius: 5px;
             cursor: none;
             transition: all 0.3s ease;
         }
         
+        #back-button {
+            border: 2px solid #40E0D0;
+        }
         #back-button:hover {
             background-color: #40E0D0;
             color: #000;
             box-shadow: 0 0 15px #40E0D0;
+        }
+        #return-to-bay-button {
+             border: 2px solid #FF2D00;
+        }
+        #return-to-bay-button:hover {
+            background-color: #FF2D00;
+            color: #000;
         }
         
         /* Custom Cursor */
@@ -381,10 +403,6 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 1rem;
             color: #EFEFEF;
-        }
-
-        #news-ticker .cyan {
-            color: #40E0D0;
         }
 
         @keyframes marquee {
@@ -657,27 +675,6 @@
             color: #000;
             box-shadow: 0 0 15px #FF2D00;
         }
-
-        /* Garage Navigation */
-        #return-to-bay-button {
-             position: absolute;
-             bottom: 12%;
-             left: 50%;
-             transform: translateX(-50%);
-             color: #000;
-        }
-        
-        /* Lobby Navigation */
-        .lobby-nav {
-            position: absolute;
-            border: 2px solid rgba(64, 224, 208, 0);
-            cursor: none;
-            transition: all 0.3s ease;
-        }
-        .lobby-nav:hover {
-            border: 2px solid #40E0D0;
-            box-shadow: 0 0 20px #40E0D0;
-        }
         
         /* Fix for console showing up uninvited */
         #hacking-console-container.hidden {
@@ -739,7 +736,7 @@
 
     <!-- Main HQ Hub -->
     <div id="hq-lobby" class="hidden">
-        <!-- Hotspots -->
+        <!-- Department Hotspots -->
         <div class="department-hotspot hotspot" style="top: 45%; left: 15%; width: 200px; height: 200px;" data-target="garage">
             <div class="hotspot-label">THE GARAGE</div>
         </div>
@@ -762,7 +759,7 @@
         </div>
 
         <!-- Lobby Navigation Hotspots -->
-        <div id="lobby-nav-1-to-2" class="lobby-nav hotspot" style="top: 40%; left: 48%; width: 80px; height: 80px; border-radius: 50%;">
+        <div id="lobby-nav-1-to-2" class="lobby-nav hotspot" style="top: 40%; left: 47%; width: 120px; height: 120px; border-radius: 50%;">
             <div class="hotspot-label" style="top: -30px; left: 50%; transform: translateX(-50%);">NEXT AREA</div>
         </div>
          <div id="lobby-nav-2-to-1" class="lobby-nav hotspot" style="top: 20%; left: 5%; width: 15%; height: 60%;">
@@ -777,7 +774,7 @@
         
         <!-- News Ticker -->
         <div id="news-ticker-container">
-            <div id="news-ticker"><p>Fetching race news...</p></div>
+            <div id="news-ticker"><p></p></div>
         </div>
 
         <!-- MP3 Player -->
@@ -790,7 +787,7 @@
                  <div id="track-info">
                      <img id="album-art" src="assets/REDLININ_HQ_MENU_MUSIC__ART_1080_v1.png" alt="Album Art">
                      <div style="flex-grow: 1;">
-                        <div id="track-display">TRACK: NOT PLAYING</div>
+                        <div id="track-display">NOT PLAYING</div>
                         <div id="time-display" style="text-align:center; font-size: 0.8rem; color: #aaa;">0:00 / 0:00</div>
                      </div>
                  </div>
@@ -816,8 +813,8 @@
 
     <!-- Department View -->
     <div id="department-view" class="hidden">
-        <div id="department-header">DEPARTMENT</h2>
-        <button id="back-button">RETURN TO HQ</button>
+        <h2 id="department-header">DEPARTMENT</h2>
+        <button id="back-button" class="department-button">RETURN TO HQ</button>
         <!-- Puzzle 2 Placeholder -->
         <div id="puzzle-2" class="glitch-artifact hidden" style="top: 80%; left: 10%;"></div>
         <!-- DATALAB UI -->
@@ -825,10 +822,10 @@
         <button id="datalab-nav-right" class="datalab-nav hidden">&gt;</button>
         <button id="access-terminal-button" class="hidden">ACCESS TERMINAL</button>
         <!-- Garage UI -->
-        <div id="garage-nav-door" class="hotspot hidden" style="top: 48%; left: 8%; width: 90px; height: 220px; border-radius: 10px;">
+        <div id="garage-nav-door" class="hotspot hidden" style="top: 35%; left: 2%; width: 12%; height: 50%; border-radius: 10px;">
              <div class="hotspot-label">SECONDARY BAY</div>
         </div>
-        <button id="return-to-bay-button" class="hidden">RETURN TO MAIN BAY</button>
+        <button id="return-to-bay-button" class="department-button hidden">RETURN TO MAIN BAY</button>
     </div>
 
     <!-- Hacking Console -->
@@ -915,6 +912,21 @@
 
             const boilerRoomHotspot = document.getElementById('boiler-room-hotspot');
             const boilerRoomAudio = document.getElementById('boiler-room-audio');
+            
+            // --- Lobby State ---
+            let currentLobbyRoom = 0;
+            const lobbyBackgrounds = [
+                'assets/hq_lobby_bg.png',
+                'assets/hq_lobby2_bg.png',
+                'assets/hq_lobby3_bg.png'
+            ];
+            const departmentHotspots = document.querySelectorAll('.department-hotspot');
+            const lobbyNavHotspots = {
+                '1-2': document.getElementById('lobby-nav-1-to-2'),
+                '2-1': document.getElementById('lobby-nav-2-to-1'),
+                '2-3': document.getElementById('lobby-nav-2-to-3'),
+                '3-2': document.getElementById('lobby-nav-3-to-2'),
+            };
 
             // --- DATALAB State ---
             let currentDatalabRoom = 0;
@@ -926,25 +938,15 @@
             const datalabNavLeft = document.getElementById('datalab-nav-left');
             const datalabNavRight = document.getElementById('datalab-nav-right');
             const accessTerminalButton = document.getElementById('access-terminal-button');
-
-            // --- Garage State ---
+            
+            // --- GARAGE State ---
             let currentGarageRoom = 0;
+            const garageBackgrounds = [
+                 'assets/garage_bg1.png',
+                 'assets/garage_bg2.png',
+            ];
             const garageNavDoor = document.getElementById('garage-nav-door');
             const returnToBayButton = document.getElementById('return-to-bay-button');
-
-            // --- Lobby State ---
-            let currentLobbyRoom = 0;
-            const lobbyBackgrounds = [
-                'assets/hq_lobby_bg.png',
-                'assets/hq_lobby2_bg.png',
-                'assets/hq_lobby3_bg.png'
-            ];
-            const lobbyNavs = {
-                '1-2': document.getElementById('lobby-nav-1-to-2'),
-                '2-1': document.getElementById('lobby-nav-2-to-1'),
-                '2-3': document.getElementById('lobby-nav-2-to-3'),
-                '3-2': document.getElementById('lobby-nav-3-to-2'),
-            };
 
             // --- Hacking Console State ---
             const hackingConsoleContainer = document.getElementById('hacking-console-container');
@@ -1014,7 +1016,7 @@
                     accessTerminalButton.classList.add('hidden');
                     garageNavDoor.classList.add('hidden');
                     returnToBayButton.classList.add('hidden');
-
+                    
                     let locationText = '';
                     let showHud = false;
 
@@ -1022,21 +1024,9 @@
                         showHud = true;
                         hqLobby.classList.remove('hidden');
                         currentState = 'hq-lobby';
-                        // Reset to the first lobby room when returning
-                        currentLobbyRoom = 0; 
-                        setupLobbyRoom(currentLobbyRoom);
-                        setupMockRaceNews(); // Use mock data
-                        
-                        // Autoplay logic
-                        currentState = 'hq-lobby';
                         locationText = 'LOCATION: HQ LOBBY';
-                        setupMockRaceNews(); // Use mock data
-                        
-                        // Autoplay logic
-                        if (!isMusicInitialized) {
-                            isMusicInitialized = true;
-                            loadTrack(currentTrackIndex); 
-                        } else if (!isPlaying) {
+                        setupLobbyRoom(currentLobbyRoom);
+                        if(isMusicInitialized && !isPlaying) {
                             playTrack();
                         }
 
@@ -1053,6 +1043,7 @@
                             pauseTrack();
                         }
                         
+                        // Department Specific Setup
                         if (department === 'datalab') {
                             currentDatalabRoom = 0;
                             setupDatalabRoom(currentDatalabRoom);
@@ -1114,6 +1105,32 @@
                     }
                 });
             });
+
+            // --- Lobby Logic ---
+            function setupLobbyRoom(roomIndex) {
+                hqLobby.style.backgroundImage = `url(${lobbyBackgrounds[roomIndex]})`;
+                // Hide all nav hotspots first
+                Object.values(lobbyNavHotspots).forEach(el => el.classList.add('hidden'));
+
+                if (roomIndex === 0) {
+                    departmentHotspots.forEach(el => el.classList.remove('hidden'));
+                    lobbyNavHotspots['1-2'].classList.remove('hidden');
+                } else {
+                    departmentHotspots.forEach(el => el.classList.add('hidden'));
+                    if (roomIndex === 1) {
+                        lobbyNavHotspots['2-1'].classList.remove('hidden');
+                        lobbyNavHotspots['2-3'].classList.remove('hidden');
+                    } else if (roomIndex === 2) {
+                        lobbyNavHotspots['3-2'].classList.remove('hidden');
+                    }
+                }
+            }
+            
+            lobbyNavHotspots['1-2'].addEventListener('click', () => { currentLobbyRoom = 1; setupLobbyRoom(1); });
+            lobbyNavHotspots['2-1'].addEventListener('click', () => { currentLobbyRoom = 0; setupLobbyRoom(0); });
+            lobbyNavHotspots['2-3'].addEventListener('click', () => { currentLobbyRoom = 2; setupLobbyRoom(2); });
+            lobbyNavHotspots['3-2'].addEventListener('click', () => { currentLobbyRoom = 1; setupLobbyRoom(1); });
+
             
             // --- DATALAB Logic ---
             function setupDatalabRoom(roomIndex) {
@@ -1144,61 +1161,23 @@
 
             // --- Garage Logic ---
             function setupGarageRoom(roomIndex) {
-                if (roomIndex === 0) {
-                    departmentView.style.backgroundImage = `url('assets/garage_bg1.png')`;
-                    garageNavDoor.classList.remove('hidden');
-                    returnToBayButton.classList.add('hidden');
-                } else {
-                    departmentView.style.backgroundImage = `url('assets/garage_bg2.png')`;
-                    garageNavDoor.classList.add('hidden');
-                    returnToBayButton.classList.remove('hidden');
-                }
+                 departmentView.style.backgroundImage = `url(${garageBackgrounds[roomIndex]})`;
+                 if(roomIndex === 0) {
+                     garageNavDoor.classList.remove('hidden');
+                     returnToBayButton.classList.add('hidden');
+                 } else {
+                     garageNavDoor.classList.add('hidden');
+                     returnToBayButton.classList.remove('hidden');
+                 }
             }
-            
             garageNavDoor.addEventListener('click', () => {
                 currentGarageRoom = 1;
-                setupGarageRoom(currentGarageRoom);
+                setupGarageRoom(1);
             });
-            
             returnToBayButton.addEventListener('click', () => {
                 currentGarageRoom = 0;
-                setupGarageRoom(currentGarageRoom);
+                setupGarageRoom(0);
             });
-
-            // --- Lobby Logic ---
-            function setupLobbyRoom(roomIndex) {
-                hqLobby.style.backgroundImage = `url(${lobbyBackgrounds[roomIndex]})`;
-                
-                // Hide all navs and hotspots first
-                Object.values(lobbyNavs).forEach(nav => nav.classList.add('hidden'));
-                document.querySelectorAll('.department-hotspot').forEach(h => h.classList.add('hidden'));
-                boilerRoomHotspot.classList.add('hidden'); // Also hide boiler room grate
-
-                if (roomIndex === 0) {
-                    document.querySelectorAll('.department-hotspot').forEach(h => h.classList.remove('hidden'));
-                    lobbyNavs['1-2'].classList.remove('hidden');
-                    if (puzzleState.puzzle1 && puzzleState.puzzle2 && puzzleState.puzzle3) {
-                        boilerRoomHotspot.classList.remove('hidden');
-                    }
-                } else if (roomIndex === 1) {
-                    lobbyNavs['2-1'].classList.remove('hidden');
-                    lobbyNavs['2-3'].classList.remove('hidden');
-                } else if (roomIndex === 2) {
-                    lobbyNavs['3-2'].classList.remove('hidden');
-                }
-
-                // Update HUD location text based on lobby room
-                hudLocation.textContent = `LOCATION: HQ LOBBY ${roomIndex + 1}`;
-            }
-
-            Object.keys(lobbyNavs).forEach(key => {
-                lobbyNavs[key].addEventListener('click', () => {
-                    const [from, to] = key.split('-').map(Number);
-                    currentLobbyRoom = to - 1;
-                    setupLobbyRoom(currentLobbyRoom);
-                });
-            });
-
 
             // --- Hacking Console Logic ---
             accessTerminalButton.addEventListener('click', () => hackingConsoleContainer.classList.remove('hidden'));
@@ -1241,22 +1220,22 @@
                  }, 300);
             }
 
-            // --- News Ticker Logic (Mock Data) ---
-            function setupMockRaceNews() {
-                const ticker = document.getElementById('news-ticker');
-                const mockHeadlines = [
-                    "SHOCK UPSET AT SPA AS ROOKIE DRIVER CLAIMS FIRST GT WORLD CHALLENGE VICTORY",
-                    "FORMULA 1 TEAMS PREPARE FOR HIGH-SPEED BATTLE AT MONZA",
-                    "INDYCAR CHAMPIONSHIP RACE TIGHTENS AFTER DRAMATIC FINISH AT LAGUNA SECA",
-                    "LE MANS HYPERCAR ENTRIES FOR NEXT SEASON ANNOUNCED",
-                    "NÜRBURGRING 24 HOURS SEES RECORD-BREAKING LAP TIMES IN QUALIFYING"
+            // --- News Ticker Logic ---
+            function populateNewsTicker() {
+                const headlines = [
+                    "VERSTAPPEN DOMINATES AT SPA; SECURES ANOTHER CONVINCING VICTORY",
+                    "PENSKE AND GANASSI BATTLE HEATS UP IN INDYCAR CHAMPIONSHIP CHASE",
+                    "PORSCHE GT3 TEAM CLAIMS ENDURANCE VICTORY AT NURBURGRING",
+                    "FORMULA E ANNOUNCES NEW CITY CIRCUIT FOR UPCOMING SEASON",
+                    "RISING STAR PIASTRI SCORES MAIDEN F1 PODIUM FINISH"
                 ];
-
+                const ticker = document.getElementById('news-ticker');
                 let tickerContent = '';
-                mockHeadlines.forEach(headline => {
-                    tickerContent += `<p>${headline}</p><p class="cyan">//</p>`;
+                headlines.forEach(headline => {
+                    tickerContent += `<p>${headline}</p>`;
                 });
-                ticker.innerHTML = tickerContent.repeat(5); // Repeat for a long scroll
+                // Repeat content to ensure a smooth, continuous loop
+                ticker.innerHTML = tickerContent.repeat(5);
             }
 
 
@@ -1311,7 +1290,7 @@
             }
 
 
-            function loadTrack(index) {
+            async function loadTrack(index, autoplay = false) {
                 if (animationFrameId) cancelAnimationFrame(animationFrameId);
                 if (audioSource) {
                     try { audioSource.stop(); } catch (e) {}
@@ -1322,59 +1301,50 @@
                 playPauseBtn.textContent = '▶';
                 trackDisplay.textContent = 'LOADING...';
                 
-                const trackFile = encodeURI(playlist[index].file);
+                const trackFile = playlist[index].file;
 
-                fetch(trackFile)
-                     .then(response => {
-                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                        return response.arrayBuffer();
-                    })
-                    .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
-                    .then(decodedBuffer => {
-                        audioBuffer = decodedBuffer;
-                        trackDisplay.textContent = `${playlist[index].title.toUpperCase()}`;
-                        seekSlider.max = audioBuffer.duration;
-                        seekSlider.value = 0;
-                        playTrack();
-                    })
-                    .catch(e => {
-                        console.error('Error loading audio:', e);
-                        trackDisplay.textContent = 'ERROR LOADING TRACK';
-                    });
+                try {
+                    const response = await fetch(trackFile);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const arrayBuffer = await response.arrayBuffer();
+                    const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                    
+                    audioBuffer = decodedBuffer;
+                    trackDisplay.textContent = `${playlist[index].title.toUpperCase()}`;
+                    seekSlider.max = audioBuffer.duration;
+                    seekSlider.value = 0;
+                    if (autoplay) {
+                       playTrack();
+                    }
+                } catch (e) {
+                    console.error('Error loading audio:', e);
+                    trackDisplay.textContent = 'ERROR LOADING TRACK';
+                }
             }
 
             function playTrack() {
                 if (!audioBuffer) return;
-
-                const startPlayback = () => {
-                    if (isPlaying) {
-                       try { audioSource.stop(); } catch (e) {}
-                    }
-                    
-                    audioSource = audioContext.createBufferSource();
-                    audioSource.buffer = audioBuffer;
-                    audioSource.connect(analyser); 
-
-                    audioStartTime = audioContext.currentTime - startOffset;
-                    const clampedOffset = Math.max(0, Math.min(startOffset, audioBuffer.duration));
-                    audioSource.start(0, clampedOffset);
-                    isPlaying = true;
-                    playPauseBtn.textContent = '⏸';
-                    
-                    updateLoop();
-                    
-                    audioSource.onended = () => {
-                        if (isPlaying && (audioContext.currentTime - audioStartTime) >= audioBuffer.duration - 0.1) {
-                            playNext();
-                        }
-                    };
-                };
-
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume().then(startPlayback);
-                } else {
-                    startPlayback();
+                
+                if (isPlaying) {
+                   try { audioSource.stop(); } catch (e) {}
                 }
+                
+                audioSource = audioContext.createBufferSource();
+                audioSource.buffer = audioBuffer;
+                audioSource.connect(analyser); 
+
+                audioStartTime = audioContext.currentTime - startOffset;
+                audioSource.start(0, startOffset);
+                isPlaying = true;
+                playPauseBtn.textContent = '⏸';
+                
+                updateLoop();
+                
+                audioSource.onended = () => {
+                    if (isPlaying && (audioContext.currentTime - audioStartTime) >= audioBuffer.duration - 0.1) {
+                        playNext();
+                    }
+                };
             }
 
             function pauseTrack() {
@@ -1394,7 +1364,11 @@
                     const duration = audioBuffer ? Math.floor(audioBuffer.duration) : 0;
                     timeDisplay.textContent = `${formatTime(elapsedTime)} / ${formatTime(duration)}`;
 
-                    animationFrameId = requestAnimationFrame(updateLoop);
+                    if (elapsedTime >= audioBuffer.duration) {
+                        playNext();
+                    } else {
+                        animationFrameId = requestAnimationFrame(updateLoop);
+                    }
                 }
             }
             
@@ -1404,41 +1378,19 @@
                     currentTrackIndex = 0;
                     shufflePlaylist();
                 }
-                loadTrack(currentTrackIndex);
+                loadTrack(currentTrackIndex, true);
             }
 
             function playPrev() {
                 currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
-                loadTrack(currentTrackIndex);
+                loadTrack(currentTrackIndex, true);
             }
 
             playPauseBtn.addEventListener('click', () => {
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume().then(() => {
-                        if (!isMusicInitialized) {
-                            setupAudio();
-                            isMusicInitialized = true;
-                        }
-                        if (!audioBuffer) {
-                            loadTrack(currentTrackIndex);
-                        } else if (!isPlaying) {
-                            playTrack();
-                        } else {
-                            pauseTrack();
-                        }
-                    });
+                 if (isPlaying) {
+                    pauseTrack();
                 } else {
-                     if (!isMusicInitialized) {
-                        setupAudio();
-                        isMusicInitialized = true;
-                    }
-                    if (!audioBuffer) {
-                        loadTrack(currentTrackIndex);
-                    } else if (isPlaying) {
-                        pauseTrack();
-                    } else {
-                        playTrack();
-                    }
+                    playTrack();
                 }
             });
 
@@ -1455,10 +1407,10 @@
                 if (!audioBuffer) return;
                 cancelAnimationFrame(animationFrameId);
                 startOffset = parseFloat(seekSlider.value);
-                audioStartTime = audioContext.currentTime - startOffset;
                 if (isPlaying) {
-                    playTrack();
+                   playTrack();
                 }
+                 updateLoop();
             });
             
             function formatTime(seconds) {
@@ -1497,32 +1449,31 @@
                 });
             }
             
-            function unlockAudio() {
+            function handleMenuClick() {
+                // This function is the key fix for autoplay issues.
                 if (audioContext.state === 'suspended') {
                     audioContext.resume().then(() => {
                         if (!isMusicInitialized) {
                             setupAudio();
+                            shufflePlaylist();
+                            loadTrack(currentTrackIndex, true); // Autoplay first track
+                            isMusicInitialized = true;
                         }
                     });
-                } else if (!isMusicInitialized) {
-                    setupAudio();
+                }
+                 if (currentState === 'main-menu') {
+                    const selectedOption = menuOptions[currentMenuSelection];
+                    if (selectedOption === 'new-game') transition('hq-lobby');
+                    else if (selectedOption === 'settings') transition('department-settings'); // Placeholder
                 }
             }
 
+
             menuOptionNewGame.addEventListener('mouseover', () => { currentMenuSelection = 0; updateMenuSelection(); });
             menuOptionSettings.addEventListener('mouseover', () => { currentMenuSelection = 1; updateMenuSelection(); });
-            menuOptionNewGame.addEventListener('click', () => { 
-                if (currentState === 'main-menu') {
-                    unlockAudio();
-                    transition('hq-lobby');
-                }
-            });
-            menuOptionSettings.addEventListener('click', () => { 
-                if (currentState === 'main-menu') {
-                    unlockAudio();
-                    transition('department-settings');
-                }
-            });
+            menuOptionNewGame.addEventListener('click', handleMenuClick);
+            menuOptionSettings.addEventListener('click', () => { if (currentState === 'main-menu') transition('department-settings'); });
+
 
             window.addEventListener('keydown', (e) => {
                 if (currentState === 'main-menu') {
@@ -1533,10 +1484,7 @@
                         currentMenuSelection = (currentMenuSelection + 1) % menuOptions.length;
                         updateMenuSelection();
                     } else if (e.key === 'Enter') {
-                        unlockAudio();
-                        const selectedOption = menuOptions[currentMenuSelection];
-                        if (selectedOption === 'new-game') transition('hq-lobby');
-                        else if (selectedOption === 'settings') transition('department-settings');
+                        handleMenuClick();
                     }
                 }
             });
@@ -1552,7 +1500,7 @@
             // --- Event Listeners for Navigation ---
             pressStart.addEventListener('click', () => {
                  if (currentState === 'title') {
-                    unlockAudio();
+                     handleMenuClick(); // Trigger audio unlock
                     transition('main-menu');
                 }
             });
@@ -1571,7 +1519,7 @@
             });
 
             // --- Initial Boot Sequence ---
-            shufflePlaylist(); 
+            populateNewsTicker();
             setInterval(updateClock, 1000);
             updateClock();
             
@@ -1598,9 +1546,6 @@
 </body>
 
 </html>
-
-
-
 
 
 
