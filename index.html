@@ -1203,7 +1203,7 @@
                     .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
                     .then(decodedBuffer => {
                         audioBuffer = decodedBuffer;
-                        trackDisplay.textContent = `TRACK: ${playlist[index].title.toUpperCase()}`;
+                        trackDisplay.textContent = `${playlist[index].title.toUpperCase()}`;
                         seekSlider.max = audioBuffer.duration;
                         seekSlider.value = 0;
                         playTrack();
@@ -1469,4 +1469,5 @@
 </body>
 
 </html>
+
 
