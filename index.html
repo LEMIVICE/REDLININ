@@ -726,6 +726,10 @@
         /* QL SIM */
         #ql-sim-cockpit {
             background-image: url('assets/ql_sim_bg.png');
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
         }
         
         #ql-hud {
@@ -738,12 +742,31 @@
             height: 150px;
             background-color: rgba(0,0,0,0.7);
             border: 2px solid var(--accent-color);
+            font-family: 'Orbitron', sans-serif;
+            color: var(--accent-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        #ql-hud p {
+            font-size: 1.5rem;
+            text-shadow: 0 0 5px var(--accent-color);
+        }
+        #ql-hud #ql-controls button {
+            background: none;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            padding: 5px 10px;
+            margin: 0 10px;
         }
         
         /* Garage Schematics */
         .schematic-hotspot {
             position: absolute;
-            border-radius: 5px;
         }
         .schematic-hotspot .hotspot-label {
             left: 50%;
@@ -756,6 +779,9 @@
         #driver-data-screen {
              padding: 80px 5%;
              color: #EFEFEF;
+             width: 100vw;
+             height: 100vh;
+             background-color: #050505;
         }
         #driver-data-screen h2 {
             font-family: 'Orbitron', sans-serif;
@@ -932,18 +958,18 @@
         <h2 id="department-header">DEPARTMENT</h2>
         <button id="back-button" class="department-button">RETURN TO HQ</button>
         <!-- Puzzle 2 Placeholder -->
-        <div id="puzzle-2" class="glitch-artifact hidden" style="top: 80%; left: 10%;"></div>
+        <div id="puzzle-2" class="glitch-artifact hidden department-ui" style="top: 80%; left: 10%;"></div>
         <!-- DATALAB UI -->
-        <button id="datalab-nav-left" class="datalab-nav hidden">&lt;</button>
-        <button id="datalab-nav-right" class="datalab-nav hidden">&gt;</button>
-        <button id="access-terminal-button" class="hidden">ACCESS TERMINAL</button>
+        <button id="datalab-nav-left" class="datalab-nav hidden department-ui">&lt;</button>
+        <button id="datalab-nav-right" class="datalab-nav hidden department-ui">&gt;</button>
+        <button id="access-terminal-button" class="hidden department-ui">ACCESS TERMINAL</button>
         <!-- Garage UI -->
-        <div id="garage-nav-door" class="hotspot hidden" style="top: 35%; left: 2%; width: 12%; height: 50%; border-radius: 10px;">
+        <div id="garage-nav-door" class="hotspot hidden department-ui" style="top: 35%; left: 2%; width: 12%; height: 50%; border-radius: 10px;">
              <div class="hotspot-label">SECONDARY BAY</div>
         </div>
-        <button id="return-to-bay-button" class="department-button hidden">RETURN TO MAIN BAY</button>
+        <button id="return-to-bay-button" class="department-button hidden department-ui">RETURN TO MAIN BAY</button>
         <!-- Garage Schematics -->
-        <div id="garage-schematics" class="hidden">
+        <div id="garage-schematics" class="hidden department-ui">
             <div class="schematic-hotspot hotspot" style="top: 50%; left: 50%; width: 100px; height: 50px;">
                  <div class="hotspot-label">FUSION ENGINE CORE</div>
             </div>
@@ -955,13 +981,13 @@
             </div>
         </div>
         <!-- QL SIM UI -->
-        <div id="ql-sim-cockpit" class="hidden">
+        <div id="ql-sim-cockpit" class="hidden department-ui">
             <div id="ql-hud">
                 <!-- QL Player will be injected here by JS -->
             </div>
         </div>
         <!-- Settings/Driver Data UI -->
-        <div id="driver-data-screen" class="hidden">
+        <div id="driver-data-screen" class="hidden department-ui">
              <h2>DRIVER DATA // SYSTEM SETTINGS</h2>
              <div class="data-block">
                  <h3>SESSION DATA</h3>
@@ -1149,20 +1175,29 @@
             // --- Sound Effects ---
             function setupSounds() {
                 synth = new Tone.Synth({
-                    oscillator: { type: 'square' },
-                    envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 0.1 }
+                    oscillator: { type: 'sine' },
+                    envelope: { attack: 0.005, decay: 0.2, sustain: 0.1, release: 0.3 }
                 }).toDestination();
                 Tone.Master.volume.value = Tone.gainToDb(playerData.settings.masterVolume / 100);
             }
             
-            const playSound = (note) => {
-                if (synth) synth.triggerAttackRelease(note, '8n');
+            const playSound = (note, duration = '8n') => {
+                if (synth) synth.triggerAttackRelease(note, duration);
+            };
+            
+            const playChime = (notes) => {
+                 if (synth) {
+                     const now = Tone.now();
+                     notes.forEach((note, i) => {
+                         synth.triggerAttackRelease(note, "16n", now + i * 0.05);
+                     });
+                 }
             };
 
             // --- Core Functions ---
             
             const transition = (targetState) => {
-                playSound('C2');
+                playSound('C2', '4n');
                 transitionOverlay.classList.add('active');
                 currentState = 'loading';
                 
@@ -1319,7 +1354,7 @@
                 puzzles[key].addEventListener('click', () => {
                     const puzzleNum = key.split('-')[1];
                     if (!playerData.puzzlesFound[key]) {
-                        playSound('A5');
+                        playChime(['C5', 'E5', 'G5']);
                         playerData.puzzlesFound[key] = true;
                         puzzles[key].classList.add('hidden');
                         showNotification(`ARTIFACT FRAGMENT ${puzzleNum}/3 COLLECTED`);
@@ -1396,14 +1431,16 @@
             returnToBayButton.addEventListener('click', () => { currentGarageRoom = 0; setupGarageRoom(0); });
             
             function setupQlSimPlayer() {
-                // This is a placeholder for a more complex UI
                 const qlHud = document.getElementById('ql-hud');
                 qlHud.innerHTML = `
-                    <div style="color:var(--accent-color); font-family: 'Orbitron'; padding: 20px;">
-                        <p>SSM STREAM ACTIVE</p>
-                        <p>CURRENT TRACK: ${playlist[currentTrackIndex].title}</p>
+                    <p>${playlist[currentTrackIndex].title.toUpperCase()}</p>
+                    <div id="ql-controls">
+                       <button>⏮</button>
+                       <button>${isPlaying ? '⏸' : '▶'}</button>
+                       <button>⏭</button>
                     </div>
                 `;
+                 // Add event listeners for QL controls here
             }
 
             // Hacking Console Logic
@@ -1609,6 +1646,7 @@
             }
 
             // Draggable MP3 Player
+            let isDragging = false, offsetX, offsetY;
             mp3Player.querySelector('#mp3-header').addEventListener('mousedown', (e) => {
                 isDragging = true;
                 offsetX = e.clientX - mp3Player.offsetLeft;
@@ -1637,7 +1675,7 @@
                             setupAudio();
                             setupSounds();
                             shufflePlaylist();
-                            loadTrack(currentTrackIndex, true);
+                            loadTrack(currentTrackIndex, true); // Autoplay on first interaction
                             isMusicInitialized = true;
                         }
                     });
@@ -1653,7 +1691,7 @@
             menuOptionSettings.addEventListener('mouseover', () => { if(currentMenuSelection !== 1) { currentMenuSelection = 1; updateMenuSelection();} });
             menuOptionNewGame.addEventListener('click', handleMenuClick);
             menuOptionSettings.addEventListener('click', handleMenuClick);
-            pressStart.addEventListener('click', () => { if(currentState === 'title') transition('main-menu'); });
+            pressStart.addEventListener('click', () => { if(currentState === 'title') { handleMenuClick(); transition('main-menu'); } });
             
             window.addEventListener('keydown', (e) => {
                 if (currentState === 'main-menu') {
