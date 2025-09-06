@@ -38,6 +38,52 @@
         .transition-transform {
             transition: transform 0.5s ease-in-out;
         }
+        
+        /* HUD Bar */
+        #hud-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid #FF2D00;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 200;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        #hud-left {
+            display: flex;
+            align-items: center;
+        }
+
+        #hud-logo {
+            height: 20px;
+            margin-right: 15px;
+        }
+        
+        #hud-location {
+            color: #EFEFEF;
+        }
+
+        #hud-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        #audio-visualizer {
+            height: 40px;
+        }
+
+        #hud-right {
+             color: #EFEFEF;
+        }
+
 
         /* Boot Sequence Styling */
         #boot-sequence .boot-screen {
@@ -165,6 +211,7 @@
             position: relative;
             width: 100vw;
             height: 100vh;
+            padding-top: 50px; /* Account for HUD */
         }
 
         .hotspot {
@@ -213,11 +260,12 @@
             height: 100vh;
             background-size: cover;
             background-position: center;
+            padding-top: 50px; /* Account for HUD */
         }
         
         #department-header {
              position: absolute;
-             top: 5%;
+             top: 10%; /* Adjusted for HUD */
              left: 50%;
              transform: translateX(-50%);
              font-family: 'Orbitron', sans-serif;
@@ -281,7 +329,7 @@
         
         /* Main Menu */
         #main-menu {
-            background-image: url('assets/start_menu_bg.png');
+            background-image: url('assets/main_menu_bg.png');
             background-size: cover;
             background-position: center;
             display: flex;
@@ -482,7 +530,7 @@
 
         #notification {
             position: absolute;
-            top: 5%;
+            top: 60px; /* Below HUD */
             left: 50%;
             transform: translateX(-50%);
             background-color: rgba(0, 0, 0, 0.9);
@@ -619,6 +667,22 @@
 </head>
 
 <body>
+
+    <!-- HUD Bar -->
+    <div id="hud-bar" class="hidden">
+        <div id="hud-left">
+            <img id="hud-logo" src="assets/redlinin_logo.png" alt="Redlinin Logo">
+            <span id="hud-location"></span>
+        </div>
+        <div id="hud-center">
+            <canvas id="audio-visualizer" width="300" height="40"></canvas>
+        </div>
+        <div id="hud-right">
+            <span id="hud-clock"></span>
+        </div>
+    </div>
+
+
     <!-- Custom Cursor -->
     <div id="cursor-dot"></div>
     <div id="cursor-ring"></div>
@@ -769,6 +833,13 @@
             const menuOptionNewGame = document.getElementById('menu-option-new-game');
             const menuOptionSettings = document.getElementById('menu-option-settings');
 
+            // HUD Elements
+            const hudBar = document.getElementById('hud-bar');
+            const hudLocation = document.getElementById('hud-location');
+            const hudClock = document.getElementById('hud-clock');
+            const visualizerCanvas = document.getElementById('audio-visualizer');
+            const visualizerCtx = visualizerCanvas.getContext('2d');
+
             // Custom Cursor
             const cursorDot = document.getElementById('cursor-dot');
             const cursorRing = document.getElementById('cursor-ring');
@@ -826,7 +897,8 @@
             const mp3Player = document.getElementById('mp3-player');
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             let audioSource;
-            let gainNode; // Keep gainNode accessible
+            let gainNode; 
+            let analyser; // For visualizer
             let audioBuffer;
             let isPlaying = false;
             let currentTrackIndex = 0;
@@ -882,9 +954,14 @@
                     datalabNavRight.classList.add('hidden');
                     accessTerminalButton.classList.add('hidden');
 
+                    let locationText = '';
+                    let showHud = false;
+
                     if (targetState === 'hq-lobby') {
+                        showHud = true;
                         hqLobby.classList.remove('hidden');
                         currentState = 'hq-lobby';
+                        locationText = 'LOCATION: HQ LOBBY';
                         fetchRaceNews();
                         if (audioContext.state === 'running' && !isMusicInitialized) {
                             isMusicInitialized = true;
@@ -894,17 +971,18 @@
                         }
 
                     } else if (targetState.startsWith('department-')) {
+                        showHud = true;
                         departmentView.classList.remove('hidden');
                         currentState = 'department';
                         const department = targetState.split('-')[1];
-                        departmentHeader.textContent = `THE ${department.toUpperCase().replace('QLSIM', 'QL SIMULATOR')}`;
+                        const departmentName = `THE ${department.toUpperCase().replace('QLSIM', 'QL SIMULATOR')}`;
+                        departmentHeader.textContent = departmentName;
+                        locationText = `DEPT: ${departmentName}`;
                         
-                        // Pause lobby music when entering a department
                         if (isPlaying) {
                             pauseTrack();
                         }
                         
-                        // Handle department specific setups
                         if (department === 'datalab') {
                             currentDatalabRoom = 0;
                             setupDatalabRoom(currentDatalabRoom);
@@ -912,7 +990,6 @@
                             boilerRoomAudio.play();
                             departmentView.style.backgroundImage = "url('assets/boiler_room_bg.png')";
                         } else {
-                            // Placeholder for other departments
                             departmentView.style.backgroundImage = "none";
                             departmentView.style.backgroundColor = "#111";
                         }
@@ -923,6 +1000,13 @@
                         puzzles['puzzle-1'].classList.remove('hidden');
                         currentState = 'main-menu';
                         updateMenuSelection();
+                    } 
+                    
+                    if (showHud) {
+                        hudBar.classList.remove('hidden');
+                        hudLocation.textContent = locationText;
+                    } else {
+                        hudBar.classList.add('hidden');
                     }
 
                     loadingScreen.classList.add('hidden');
@@ -964,7 +1048,6 @@
                  datalabNavLeft.classList.remove('hidden');
                  datalabNavRight.classList.remove('hidden');
 
-                 // Puzzle & Terminal only in Room 2 (index 1)
                  if (roomIndex === 1) {
                      if (!puzzleState['puzzle-2']) {
                          puzzles['puzzle-2'].classList.remove('hidden');
@@ -1031,17 +1114,24 @@
             async function fetchRaceNews() {
                 const ticker = document.getElementById('news-ticker');
                 const apiKey = ""; // Canvas will provide this
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                const prompt = "Give me 5 very short, recent, and exciting news headlines from the world of motorsport, including F1, IndyCar, and GT racing. Format them as: 'SOURCE :: HEADLINE'. Use double colons as a separator.";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const prompt = "Give me 5 very short, recent, and exciting news headlines from the world of motorsport, including F1, IndyCar, and GT racing.";
+
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                     safetySettings: [
+                        { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE" },
+                        { "category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE" },
+                        { "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE" },
+                        { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE" }
+                    ]
+                };
 
                 try {
                     const response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: prompt }] }],
-                            tools: [{ "google_search": {} }],
-                        })
+                        body: JSON.stringify(payload)
                     });
                     
                     if (!response.ok) {
@@ -1052,15 +1142,14 @@
                     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
                     if (text) {
-                        const headlines = text.split('\n').filter(line => line.includes('::'));
+                        const headlines = text.split('\n').filter(line => line.trim() !== '' && !line.startsWith('*'));
                         let tickerContent = '';
                         headlines.forEach(headline => {
-                            const parts = headline.split('::');
-                            if(parts.length > 1) {
-                                tickerContent += `<p><span class="cyan">${parts[0].trim()} ::</span> ${parts[1].trim()}</p>`;
-                            }
+                            // Remove leading characters like '-' or numbers if they exist
+                            const cleanHeadline = headline.replace(/^[\d\.\-\* ]+/, '');
+                            tickerContent += `<p>${cleanHeadline.trim()}</p>`;
                         });
-                        ticker.innerHTML = tickerContent.repeat(5); // Repeat for smooth scrolling
+                        ticker.innerHTML = tickerContent.repeat(5); 
                     } else {
                          ticker.innerHTML = `<p>Could not retrieve live race data.</p>`;
                     }
@@ -1071,11 +1160,48 @@
             }
 
 
-            // --- MP3 Player Logic ---
-            // Setup gain node once
-            gainNode = audioContext.createGain();
-            gainNode.connect(audioContext.destination);
-            gainNode.gain.value = volumeSlider.value / 100;
+            // --- MP3 Player & Visualizer Logic ---
+            function setupAudio() {
+                gainNode = audioContext.createGain();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 128; 
+                
+                gainNode.connect(audioContext.destination);
+                analyser.connect(gainNode);
+                
+                gainNode.gain.value = volumeSlider.value / 100;
+                
+                drawVisualizer(); 
+            }
+
+            function drawVisualizer() {
+                requestAnimationFrame(drawVisualizer);
+
+                if (!analyser || !isPlaying) {
+                    visualizerCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+                    return;
+                }
+
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                analyser.getByteFrequencyData(dataArray);
+
+                visualizerCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+                
+                const barWidth = (visualizerCanvas.width / bufferLength) * 2;
+                let barHeight;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    barHeight = dataArray[i] / 4; 
+                    
+                    visualizerCtx.fillStyle = '#40E0D0';
+                    visualizerCtx.fillRect(x, visualizerCanvas.height - barHeight, barWidth, barHeight);
+
+                    x += barWidth + 2; 
+                }
+            }
+
 
             function shufflePlaylist() {
                 for (let i = playlist.length - 1; i > 0; i--) {
@@ -1092,12 +1218,17 @@
                 }
                 isPlaying = false;
                 startOffset = 0;
-                audioBuffer = null; // Clear previous buffer
+                audioBuffer = null; 
                 playPauseBtn.textContent = '▶';
                 trackDisplay.textContent = 'LOADING...';
+                
+                const trackFile = playlist[index].file.replace(/ /g, '%20');
 
-                fetch(playlist[index].file)
-                    .then(response => response.arrayBuffer())
+                fetch(trackFile)
+                     .then(response => {
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        return response.arrayBuffer();
+                    })
                     .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
                     .then(decodedBuffer => {
                         audioBuffer = decodedBuffer;
@@ -1115,7 +1246,7 @@
             }
 
             function playTrack() {
-                if (!audioBuffer) return; // Don't play if buffer isn't ready
+                if (!audioBuffer) return;
                 if (audioContext.state === 'suspended') {
                     audioContext.resume();
                 }
@@ -1125,7 +1256,7 @@
                 
                 audioSource = audioContext.createBufferSource();
                 audioSource.buffer = audioBuffer;
-                audioSource.connect(gainNode);
+                audioSource.connect(analyser); 
 
                 audioStartTime = audioContext.currentTime - startOffset;
                 audioSource.start(0, startOffset);
@@ -1135,7 +1266,6 @@
                 updateLoop();
                 
                 audioSource.onended = () => {
-                     // Check if it ended naturally (not from being stopped)
                     if (isPlaying && (audioContext.currentTime - audioStartTime) >= audioBuffer.duration) {
                         playNext();
                     }
@@ -1167,7 +1297,7 @@
                 currentTrackIndex++;
                 if (currentTrackIndex >= playlist.length) {
                     currentTrackIndex = 0;
-                    shufflePlaylist(); // Re-shuffle when the playlist loops
+                    shufflePlaylist();
                 }
                 loadTrack(currentTrackIndex);
             }
@@ -1180,6 +1310,10 @@
             playPauseBtn.addEventListener('click', () => {
                 if (audioContext.state === 'suspended') {
                     audioContext.resume().then(() => {
+                        if (!isMusicInitialized) {
+                            setupAudio();
+                            isMusicInitialized = true;
+                        }
                         if (!audioBuffer) {
                             loadTrack(currentTrackIndex);
                         } else if (!isPlaying) {
@@ -1189,6 +1323,10 @@
                         }
                     });
                 } else {
+                     if (!isMusicInitialized) {
+                        setupAudio();
+                        isMusicInitialized = true;
+                    }
                     if (!audioBuffer) {
                         loadTrack(currentTrackIndex);
                     } else if (isPlaying) {
@@ -1229,7 +1367,6 @@
                 isDragging = true;
                 offsetX = e.clientX - mp3Player.offsetLeft;
                 offsetY = e.clientY - mp3Player.offsetTop;
-                mp3Player.style.cursor = 'grabbing';
             });
             
             document.addEventListener('mousemove', (e) => {
@@ -1241,7 +1378,6 @@
             
             document.addEventListener('mouseup', () => {
                 isDragging = false;
-                mp3Player.style.cursor = 'grab';
             });
 
 
@@ -1256,30 +1392,11 @@
                 });
             }
 
-            menuOptionNewGame.addEventListener('mouseover', () => {
-                currentMenuSelection = 0;
-                updateMenuSelection();
-            });
+            menuOptionNewGame.addEventListener('mouseover', () => { currentMenuSelection = 0; updateMenuSelection(); });
+            menuOptionSettings.addEventListener('mouseover', () => { currentMenuSelection = 1; updateMenuSelection(); });
+            menuOptionNewGame.addEventListener('click', () => { if (currentState === 'main-menu') transition('hq-lobby'); });
+            menuOptionSettings.addEventListener('click', () => { if (currentState === 'main-menu') transition('department-settings'); });
 
-            menuOptionSettings.addEventListener('mouseover', () => {
-                currentMenuSelection = 1;
-                updateMenuSelection();
-            });
-
-            menuOptionNewGame.addEventListener('click', () => {
-                if (currentState === 'main-menu') {
-                    transition('hq-lobby');
-                }
-            });
-
-            menuOptionSettings.addEventListener('click', () => {
-                if (currentState === 'main-menu') {
-                    transition('department-settings');
-                }
-            });
-
-
-            // Event listener for keyboard navigation
             window.addEventListener('keydown', (e) => {
                 if (currentState === 'main-menu') {
                     if (e.key === 'ArrowUp' || e.key === 'w') {
@@ -1290,22 +1407,30 @@
                         updateMenuSelection();
                     } else if (e.key === 'Enter') {
                         const selectedOption = menuOptions[currentMenuSelection];
-                        if (selectedOption === 'new-game') {
-                            transition('hq-lobby');
-                        } else if (selectedOption === 'settings') {
-                            transition('department-settings'); // Placeholder for settings page
-                        }
+                        if (selectedOption === 'new-game') transition('hq-lobby');
+                        else if (selectedOption === 'settings') transition('department-settings');
                     }
                 }
             });
 
+            // --- Clock Logic ---
+            function updateClock() {
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                hudClock.textContent = `${hours}:${minutes}`;
+            }
 
             // --- Event Listeners for Navigation ---
             pressStart.addEventListener('click', () => {
                  if (currentState === 'title') {
-                    // This first user interaction is crucial for unmuting audio
                     if (audioContext.state === 'suspended') {
-                         audioContext.resume();
+                         audioContext.resume().then(() => {
+                             if(!isMusicInitialized) {
+                                setupAudio();
+                                isMusicInitialized = true;
+                             }
+                         });
                     }
                     transition('main-menu');
                 }
@@ -1325,7 +1450,11 @@
             });
 
             // --- Initial Boot Sequence ---
-            shufflePlaylist(); // Shuffle playlist on initial load
+            shufflePlaylist(); 
+            setInterval(updateClock, 1000);
+            updateClock();
+            
+            hudBar.classList.add('hidden');
 
             setTimeout(() => {
                 lvScreen.classList.add('hidden');
