@@ -664,19 +664,19 @@
              bottom: 12%;
              left: 50%;
              transform: translateX(-50%);
-             font-family: 'Orbitron', sans-serif;
-             font-size: 1.2rem;
-             color: #EFEFEF;
-             background-color: #000;
-             padding: 10px 20px;
-             border: 2px solid #40E0D0;
-             border-radius: 5px;
-             cursor: none;
-             transition: all 0.3s ease;
+             color: #000;
         }
-        #return-to-bay-button:hover {
-            background-color: #40E0D0;
-            color: #000;
+        
+        /* Lobby Navigation */
+        .lobby-nav {
+            position: absolute;
+            border: 2px solid rgba(64, 224, 208, 0);
+            cursor: none;
+            transition: all 0.3s ease;
+        }
+        .lobby-nav:hover {
+            border: 2px solid #40E0D0;
+            box-shadow: 0 0 20px #40E0D0;
         }
         
         /* Fix for console showing up uninvited */
@@ -740,25 +740,39 @@
     <!-- Main HQ Hub -->
     <div id="hq-lobby" class="hidden">
         <!-- Hotspots -->
-        <div class="hotspot" style="top: 45%; left: 15%; width: 200px; height: 200px;" data-target="garage">
+        <div class="department-hotspot hotspot" style="top: 45%; left: 15%; width: 200px; height: 200px;" data-target="garage">
             <div class="hotspot-label">THE GARAGE</div>
         </div>
-        <div class="hotspot" style="top: 40%; left: 45%; width: 150px; height: 150px;" data-target="datalab">
+        <div class="department-hotspot hotspot" style="top: 40%; left: 45%; width: 150px; height: 150px;" data-target="datalab">
             <div class="hotspot-label">THE DATALAB</div>
         </div>
-        <div class="hotspot" style="top: 25%; left: 60%; width: 100px; height: 250px;" data-target="lounge">
+        <div class="department-hotspot hotspot" style="top: 25%; left: 60%; width: 100px; height: 250px;" data-target="lounge">
             <div class="hotspot-label">THE LIQUID LOUNGE</div>
         </div>
-        <div class="hotspot" style="top: 55%; left: 88%; width: 80px; height: 120px;" data-target="rally">
+        <div class="department-hotspot hotspot" style="top: 55%; left: 88%; width: 80px; height: 120px;" data-target="rally">
             <div class="hotspot-label">THE RALLY DIVISION</div>
         </div>
-        <div class="hotspot" style="top: 65%; left: 70%; width: 180px; height: 100px;" data-target="ql-sim">
+        <div class="department-hotspot hotspot" style="top: 65%; left: 70%; width: 180px; height: 100px;" data-target="ql-sim">
             <div class="hotspot-label">QL SIMULATOR</div>
         </div>
         
         <!-- Boiler Room Puzzle Trigger -->
         <div id="boiler-room-hotspot" class="hotspot hidden" data-target="boiler-room">
              <div class="hotspot-label">ACCESS GRATE</div>
+        </div>
+
+        <!-- Lobby Navigation Hotspots -->
+        <div id="lobby-nav-1-to-2" class="lobby-nav hotspot" style="top: 20%; left: 80%; width: 15%; height: 60%;">
+            <div class="hotspot-label">NEXT AREA</div>
+        </div>
+         <div id="lobby-nav-2-to-1" class="lobby-nav hotspot" style="top: 20%; left: 5%; width: 15%; height: 60%;">
+            <div class="hotspot-label">PREVIOUS AREA</div>
+        </div>
+        <div id="lobby-nav-2-to-3" class="lobby-nav hotspot" style="top: 25%; left: 55%; width: 25%; height: 50%;">
+            <div class="hotspot-label">UPPER LEVEL</div>
+        </div>
+        <div id="lobby-nav-3-to-2" class="lobby-nav hotspot" style="top: 70%; left: 5%; width: 15%; height: 20%;">
+            <div class="hotspot-label">LOWER LEVEL</div>
         </div>
         
         <!-- News Ticker -->
@@ -918,6 +932,20 @@
             const garageNavDoor = document.getElementById('garage-nav-door');
             const returnToBayButton = document.getElementById('return-to-bay-button');
 
+            // --- Lobby State ---
+            let currentLobbyRoom = 0;
+            const lobbyBackgrounds = [
+                'assets/hq_lobby_bg.png',
+                'assets/hq_lobby2_bg.png',
+                'assets/hq_lobby3_bg.png'
+            ];
+            const lobbyNavs = {
+                '1-2': document.getElementById('lobby-nav-1-to-2'),
+                '2-1': document.getElementById('lobby-nav-2-to-1'),
+                '2-3': document.getElementById('lobby-nav-2-to-3'),
+                '3-2': document.getElementById('lobby-nav-3-to-2'),
+            };
+
             // --- Hacking Console State ---
             const hackingConsoleContainer = document.getElementById('hacking-console-container');
             const consoleOutput = document.getElementById('console-output');
@@ -993,6 +1021,13 @@
                     if (targetState === 'hq-lobby') {
                         showHud = true;
                         hqLobby.classList.remove('hidden');
+                        currentState = 'hq-lobby';
+                        // Reset to the first lobby room when returning
+                        currentLobbyRoom = 0; 
+                        setupLobbyRoom(currentLobbyRoom);
+                        setupMockRaceNews(); // Use mock data
+                        
+                        // Autoplay logic
                         currentState = 'hq-lobby';
                         locationText = 'LOCATION: HQ LOBBY';
                         setupMockRaceNews(); // Use mock data
@@ -1129,6 +1164,41 @@
                 currentGarageRoom = 0;
                 setupGarageRoom(currentGarageRoom);
             });
+
+            // --- Lobby Logic ---
+            function setupLobbyRoom(roomIndex) {
+                hqLobby.style.backgroundImage = `url(${lobbyBackgrounds[roomIndex]})`;
+                
+                // Hide all navs and hotspots first
+                Object.values(lobbyNavs).forEach(nav => nav.classList.add('hidden'));
+                document.querySelectorAll('.department-hotspot').forEach(h => h.classList.add('hidden'));
+                boilerRoomHotspot.classList.add('hidden'); // Also hide boiler room grate
+
+                if (roomIndex === 0) {
+                    document.querySelectorAll('.department-hotspot').forEach(h => h.classList.remove('hidden'));
+                    lobbyNavs['1-2'].classList.remove('hidden');
+                    if (puzzleState.puzzle1 && puzzleState.puzzle2 && puzzleState.puzzle3) {
+                        boilerRoomHotspot.classList.remove('hidden');
+                    }
+                } else if (roomIndex === 1) {
+                    lobbyNavs['2-1'].classList.remove('hidden');
+                    lobbyNavs['2-3'].classList.remove('hidden');
+                } else if (roomIndex === 2) {
+                    lobbyNavs['3-2'].classList.remove('hidden');
+                }
+
+                // Update HUD location text based on lobby room
+                hudLocation.textContent = `LOCATION: HQ LOBBY ${roomIndex + 1}`;
+            }
+
+            Object.keys(lobbyNavs).forEach(key => {
+                lobbyNavs[key].addEventListener('click', () => {
+                    const [from, to] = key.split('-').map(Number);
+                    currentLobbyRoom = to - 1;
+                    setupLobbyRoom(currentLobbyRoom);
+                });
+            });
+
 
             // --- Hacking Console Logic ---
             accessTerminalButton.addEventListener('click', () => hackingConsoleContainer.classList.remove('hidden'));
@@ -1528,6 +1598,7 @@
 </body>
 
 </html>
+
 
 
 
