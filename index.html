@@ -1114,7 +1114,7 @@
             async function fetchRaceNews() {
                 const ticker = document.getElementById('news-ticker');
                 const apiKey = ""; // Canvas will provide this
-                const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 const prompt = "Give me 5 very short, recent, and exciting news headlines from the world of motorsport, including F1, IndyCar, and GT racing.";
 
                 const payload = {
@@ -1145,7 +1145,6 @@
                         const headlines = text.split('\n').filter(line => line.trim() !== '' && !line.startsWith('*'));
                         let tickerContent = '';
                         headlines.forEach(headline => {
-                            // Remove leading characters like '-' or numbers if they exist
                             const cleanHeadline = headline.replace(/^[\d\.\-\* ]+/, '');
                             tickerContent += `<p>${cleanHeadline.trim()}</p>`;
                         });
