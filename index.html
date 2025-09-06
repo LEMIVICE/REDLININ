@@ -659,22 +659,6 @@
         }
 
         /* Garage Navigation */
-        #garage-nav-door {
-            position: absolute;
-            top: 40%;
-            left: 75%;
-            width: 100px;
-            height: 200px;
-            border: 2px solid rgba(64, 224, 208, 0);
-            cursor: none;
-            transition: all 0.3s ease;
-        }
-
-        #garage-nav-door:hover {
-            border: 2px solid #40E0D0;
-            box-shadow: 0 0 20px #40E0D0;
-        }
-
         #return-to-bay-button {
              position: absolute;
              bottom: 12%;
@@ -827,7 +811,9 @@
         <button id="datalab-nav-right" class="datalab-nav hidden">&gt;</button>
         <button id="access-terminal-button" class="hidden">ACCESS TERMINAL</button>
         <!-- Garage UI -->
-        <div id="garage-nav-door" class="hidden"></div>
+        <div id="garage-nav-door" class="hotspot hidden" style="top: 48%; left: 8%; width: 90px; height: 220px; border-radius: 10px;">
+             <div class="hotspot-label">SECONDARY BAY</div>
+        </div>
         <button id="return-to-bay-button" class="hidden">RETURN TO MAIN BAY</button>
     </div>
 
@@ -1542,6 +1528,7 @@
 </body>
 
 </html>
+
 
 
 
