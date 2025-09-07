@@ -356,10 +356,10 @@
             color: #000;
             box-shadow: 0 0 15px var(--accent-color);
         }
-        #return-to-bay-button {
+        .return-button {
              border: 2px solid #FF2D00;
         }
-        #return-to-bay-button:hover {
+        .return-button:hover {
             background-color: #FF2D00;
             color: #000;
         }
@@ -885,7 +885,7 @@
         <div class="department-hotspot hotspot" style="top: 40%; left: 45%; width: 150px; height: 150px;" data-target="datalab">
             <div class="hotspot-label">THE DATALAB</div>
         </div>
-        <div class="department-hotspot hotspot" style="top: 25%; left: 60%; width: 100px; height: 250px;" data-target="lounge">
+        <div class="department-hotspot hotspot" style="top: 25%; left: 75%; width: 15%; height: 50%;" data-target="lounge">
             <div class="hotspot-label">THE LIQUID LOUNGE</div>
         </div>
         <div class="department-hotspot hotspot" style="top: 55%; left: 88%; width: 80px; height: 120px;" data-target="rally">
@@ -967,7 +967,7 @@
         <div id="garage-nav-door" class="hotspot hidden department-ui" style="top: 35%; left: 2%; width: 12%; height: 50%; border-radius: 10px;">
              <div class="hotspot-label">SECONDARY BAY</div>
         </div>
-        <button id="return-to-bay-button" class="department-button hidden department-ui">RETURN TO MAIN BAY</button>
+        <button id="return-to-bay-button" class="department-button return-button hidden department-ui">RETURN TO MAIN BAY</button>
         <!-- Garage Schematics -->
         <div id="garage-schematics" class="hidden department-ui">
             <div class="schematic-hotspot hotspot" style="top: 50%; left: 50%; width: 100px; height: 50px;">
@@ -980,6 +980,11 @@
                  <div class="hotspot-label">DOWNFORCE SPOILER</div>
             </div>
         </div>
+        <!-- Liquid Lounge UI -->
+        <div id="lounge-nav-door" class="hotspot hidden department-ui" style="top: 30%; right: 5%; width: 10%; height: 40%; border-radius: 10px;">
+            <div class="hotspot-label">VIP AREA</div>
+        </div>
+        <button id="return-to-lounge-button" class="department-button return-button hidden department-ui">RETURN TO MAIN LOUNGE</button>
         <!-- QL SIM UI -->
         <div id="ql-sim-cockpit" class="hidden department-ui">
             <div id="ql-hud">
@@ -1108,10 +1113,12 @@
             let currentLobbyRoom = 0;
             let currentDatalabRoom = 0;
             let currentGarageRoom = 0;
+            let currentLoungeRoom = 0;
 
             const lobbyBackgrounds = ['assets/hq_lobby_bg.png', 'assets/hq_lobby2_bg.png', 'assets/hq_lobby3_bg.png'];
             const datalabBackgrounds = ['assets/datalab1.png', 'assets/datalab2.png', 'assets/datalab3.png'];
             const garageBackgrounds = ['assets/garage_bg1.png', 'assets/garage_bg2.png'];
+            const loungeBackgrounds = ['assets/liquid_lounge_bg.png', 'assets/liquid_lounge_bg2.png'];
 
             const departmentHotspots = document.querySelectorAll('.department-hotspot');
             const lobbyNavHotspots = {
@@ -1124,6 +1131,8 @@
             const garageNavDoor = document.getElementById('garage-nav-door');
             const returnToBayButton = document.getElementById('return-to-bay-button');
             const garageSchematics = document.getElementById('garage-schematics');
+            const loungeNavDoor = document.getElementById('lounge-nav-door');
+            const returnToLoungeButton = document.getElementById('return-to-lounge-button');
             const qlSimCockpit = document.getElementById('ql-sim-cockpit');
 
             // --- Hacking Console ---
@@ -1240,6 +1249,7 @@
                         // Department Specific Setup
                         if (department === 'datalab') setupDatalabRoom(currentDatalabRoom = 0);
                         else if (department === 'garage') setupGarageRoom(currentGarageRoom = 0);
+                        else if (department === 'lounge') setupLoungeRoom(currentLoungeRoom = 0);
                         else if (department === 'boiler-room') {
                             boilerRoomAudio.play();
                             departmentView.style.backgroundImage = "url('assets/boiler_room_bg.png')";
@@ -1367,19 +1377,18 @@
             // Department Logic (Lobby, Datalab, Garage, QL Sim)
             function setupLobbyRoom(roomIndex) {
                 hqLobby.style.backgroundImage = `url(${lobbyBackgrounds[roomIndex]})`;
+                departmentHotspots.forEach(el => el.classList.add('hidden'));
                 Object.values(lobbyNavHotspots).forEach(el => el.classList.add('hidden'));
 
                 if (roomIndex === 0) {
-                    departmentHotspots.forEach(el => el.classList.remove('hidden'));
+                    ['garage', 'datalab', 'rally', 'ql-sim'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
                     lobbyNavHotspots['1-2'].classList.remove('hidden');
-                } else {
-                    departmentHotspots.forEach(el => el.classList.add('hidden'));
-                    if (roomIndex === 1) {
-                        lobbyNavHotspots['2-1'].classList.remove('hidden');
-                        lobbyNavHotspots['2-3'].classList.remove('hidden');
-                    } else if (roomIndex === 2) {
-                        lobbyNavHotspots['3-2'].classList.remove('hidden');
-                    }
+                } else if (roomIndex === 1) {
+                    lobbyNavHotspots['2-1'].classList.remove('hidden');
+                    lobbyNavHotspots['2-3'].classList.remove('hidden');
+                } else if (roomIndex === 2) {
+                    document.querySelector('.department-hotspot[data-target="lounge"]').classList.remove('hidden');
+                    lobbyNavHotspots['3-2'].classList.remove('hidden');
                 }
             }
             
@@ -1390,13 +1399,11 @@
                     setupLobbyRoom(currentLobbyRoom);
                 });
             });
-
             
             function setupDatalabRoom(roomIndex) {
                  departmentView.style.backgroundImage = `url(${datalabBackgrounds[roomIndex]})`;
                  datalabNavLeft.classList.remove('hidden');
                  datalabNavRight.classList.remove('hidden');
-
                  if (roomIndex === 1) {
                      if (!playerData.puzzlesFound['puzzle2']) puzzles['puzzle-2'].classList.remove('hidden');
                      accessTerminalButton.classList.remove('hidden');
@@ -1406,14 +1413,8 @@
                  }
             }
             
-            datalabNavLeft.addEventListener('click', () => {
-                currentDatalabRoom = (currentDatalabRoom - 1 + datalabBackgrounds.length) % datalabBackgrounds.length;
-                setupDatalabRoom(currentDatalabRoom);
-            });
-            datalabNavRight.addEventListener('click', () => {
-                currentDatalabRoom = (currentDatalabRoom + 1) % datalabBackgrounds.length;
-                setupDatalabRoom(currentDatalabRoom);
-            });
+            datalabNavLeft.addEventListener('click', () => { currentDatalabRoom = (currentDatalabRoom - 1 + datalabBackgrounds.length) % datalabBackgrounds.length; setupDatalabRoom(currentDatalabRoom); });
+            datalabNavRight.addEventListener('click', () => { currentDatalabRoom = (currentDatalabRoom + 1) % datalabBackgrounds.length; setupDatalabRoom(currentDatalabRoom); });
 
             function setupGarageRoom(roomIndex) {
                  departmentView.style.backgroundImage = `url(${garageBackgrounds[roomIndex]})`;
@@ -1429,6 +1430,19 @@
             }
             garageNavDoor.addEventListener('click', () => { currentGarageRoom = 1; setupGarageRoom(1); });
             returnToBayButton.addEventListener('click', () => { currentGarageRoom = 0; setupGarageRoom(0); });
+
+            function setupLoungeRoom(roomIndex) {
+                 departmentView.style.backgroundImage = `url(${loungeBackgrounds[roomIndex]})`;
+                 if(roomIndex === 0) {
+                     loungeNavDoor.classList.remove('hidden');
+                     returnToLoungeButton.classList.add('hidden');
+                 } else {
+                     loungeNavDoor.classList.add('hidden');
+                     returnToLoungeButton.classList.remove('hidden');
+                 }
+            }
+            loungeNavDoor.addEventListener('click', () => { currentLoungeRoom = 1; setupLoungeRoom(1); });
+            returnToLoungeButton.addEventListener('click', () => { currentLoungeRoom = 0; setupLoungeRoom(0); });
             
             function setupQlSimPlayer() {
                 const qlHud = document.getElementById('ql-hud');
@@ -1556,7 +1570,7 @@
                     const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer);
                     
                     audioBuffer = decodedBuffer;
-                    trackDisplay.textContent = `${playlist[index].title.toUpperCase()}`;
+                    trackDisplay.textContent = playlist[index].title.toUpperCase();
                     seekSlider.max = audioBuffer.duration;
                     seekSlider.value = 0;
                     if (autoplay) playTrack();
@@ -1675,7 +1689,8 @@
                             setupAudio();
                             setupSounds();
                             shufflePlaylist();
-                            loadTrack(currentTrackIndex, true); // Autoplay on first interaction
+                            // Don't autoplay on the very first click, wait for lobby
+                            loadTrack(currentTrackIndex, false); 
                             isMusicInitialized = true;
                         }
                     });
@@ -1716,7 +1731,7 @@
             }
 
             // --- Event Listeners for Navigation ---
-            document.querySelectorAll('.hotspot').forEach(hotspot => {
+            document.querySelectorAll('.department-hotspot').forEach(hotspot => {
                 hotspot.addEventListener('mouseover', () => playSound('F5'));
                 hotspot.addEventListener('click', () => {
                     const target = hotspot.getAttribute('data-target');
