@@ -838,6 +838,89 @@
         .swatch.selected {
              box-shadow: 0 0 10px #FFF;
         }
+        
+        /* Race Select Menu */
+        #race-select-screen {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            padding-top: 50px; /* for HUD */
+            background: #080808;
+            font-family: 'Orbitron', sans-serif;
+        }
+        #album-select-view, #track-select-view {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+        }
+        .album-select-option {
+            font-size: 2rem;
+            border: 2px solid var(--accent-color);
+            padding: 15px 30px;
+            cursor: none;
+            transition: all 0.3s ease;
+        }
+        .album-select-option:hover {
+            background-color: var(--accent-color);
+            color: #000;
+        }
+        
+        #track-select-view {
+            flex-direction: row;
+            justify-content: space-between;
+            padding: 2%;
+        }
+        #track-list-container {
+            width: 35%;
+            height: 90%;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid var(--accent-color);
+            padding: 15px;
+            overflow-y: auto;
+        }
+        .track-item {
+            padding: 10px;
+            margin-bottom: 5px;
+            border-left: 3px solid transparent;
+            cursor: none;
+        }
+        .track-item.selected {
+            background-color: rgba(255, 45, 0, 0.5);
+            border-left: 3px solid #FF2D00;
+        }
+        #track-details-container {
+            width: 60%;
+            height: 90%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        #track-image {
+            width: 100%;
+            flex-grow: 1;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid #FF2D00;
+        }
+        #track-lore {
+            height: 35%;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #EFEFEF;
+            padding: 15px;
+            font-family: 'Roboto Condensed', sans-serif;
+            overflow-y: auto;
+        }
+        #track-lore h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: #FF2D00;
+            margin-bottom: 10px;
+        }
+
 
     </style>
 </head>
@@ -911,6 +994,9 @@
         </div>
         <div class="department-hotspot hotspot" style="top: 65%; left: 70%; width: 180px; height: 100px;" data-target="ql-sim">
             <div class="hotspot-label">QL SIMULATOR</div>
+        </div>
+         <div class="department-hotspot hotspot" style="top: 50%; left: 30%; width: 100px; height: 100px; border-radius: 50%;" data-target="race-select">
+            <div class="hotspot-label">RACE SELECT</div>
         </div>
         
         <!-- Boiler Room Puzzle Trigger -->
@@ -1014,7 +1100,7 @@
              <h2>DRIVER DATA // SYSTEM SETTINGS</h2>
              <div class="data-block">
                  <h3>SESSION DATA</h3>
-                 <div class="data-row"><span>DEPARTMENTS VISITED:</span><span id="data-visited">0 / 5</span></div>
+                 <div class="data-row"><span>DEPARTMENTS VISITED:</span><span id="data-visited">0 / 6</span></div>
                  <div class="data-row"><span>SECRETS UNLOCKED:</span><span id="data-secrets">0 / 3</span></div>
              </div>
              <div class="data-block">
@@ -1035,6 +1121,23 @@
                          <div class="swatch" style="background-color: #BE29EC;" data-color="#BE29EC"></div>
                      </div>
                  </div>
+             </div>
+        </div>
+        <!-- Race Select UI -->
+        <div id="race-select-screen" class="hidden department-ui">
+             <div id="album-select-view">
+                <div class="album-select-option" data-album="redlinin">REDLININ'</div>
+                <div class="album-select-option" data-album="gts">REDLININ':GTS</div>
+             </div>
+             <div id="track-select-view" class="hidden">
+                <div id="track-list-container"></div>
+                <div id="track-details-container">
+                    <div id="track-image"></div>
+                    <div id="track-lore">
+                         <h3>TRACK NAME</h3>
+                         <p>LORE...</p>
+                    </div>
+                </div>
              </div>
         </div>
     </div>
@@ -1143,6 +1246,40 @@
             const garageSchematics = document.getElementById('garage-schematics');
             const loungeNavDoor = document.getElementById('lounge-nav-door'), returnToLoungeButton = document.getElementById('return-to-lounge-button');
             const qlSimCockpit = document.getElementById('ql-sim-cockpit');
+
+            // --- Race Select ---
+            const raceSelectScreen = document.getElementById('race-select-screen');
+            const albumSelectView = document.getElementById('album-select-view');
+            const trackSelectView = document.getElementById('track-select-view');
+            const trackListContainer = document.getElementById('track-list-container');
+            const trackImage = document.getElementById('track-image');
+            const trackLore = document.getElementById('track-lore');
+            
+            const albums = {
+                redlinin: [
+                    { name: 'Apricot Hill Raceway', lore: 'A high-speed circuit known for its sweeping corners and unforgiving barriers. Only the most precise drivers can maintain their redline through the infamous S-curves.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'Autumn Ring', lore: 'Nestled in a vibrant forest, this technical track is a fan favorite for its dramatic elevation changes and the beautiful but treacherous leaf-strewn chicanes.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'Complex String', lore: 'A dizzying labyrinth of concrete and steel, this urban course demands perfect rhythm and timing. One mistake on its 90-degree junctions means race over.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'Deep Forest Raceway', lore: 'Carved through a dense, ancient forest, this circuit is famous for its long, dark tunnels and sudden, blinding exits. A true test of courage.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'Grand Valley Speedway', lore: 'An epic, sprawling track that combines blistering top-speed sections with tight, technical hairpins. A legendary circuit for legendary machines.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'Grindelwald', lore: 'A picturesque but perilous mountain pass course. With sheer drops on one side and rock faces on the other, there is zero room for error.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'High Speed Ring', lore: 'An old-school oval with two massive, banked corners. This track is all about raw power and holding your nerve at incredible speeds.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'Mid-Field Raceway', lore: 'A former airfield turned race track, Mid-Field is known for its wide-open layout, allowing for multiple racing lines and intense side-by-side battles.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'Red Rock Valley Speedway', lore: 'Set against a stunning desert backdrop, this track\'s abrasive surface is brutal on tires, making pit strategy as important as driving skill.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'Special Stage Route 5', lore: 'A neon-drenched nighttime city course. The tight streets and dazzling lights make this one of the most challenging and iconic tracks on the calendar.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'Special Stage Route 11', lore: 'A highly technical and industrial figure-eight circuit with a massive crossover. Traffic management and timing are everything here.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'Tahiti Road', lore: 'A beautiful and demanding dirt course that winds along a tropical coastline. Mastering the loose surface is key to victory.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'Trail Mountain', lore: 'A challenging touge-style track that winds up and down a mountain. Famous for its blind crests and hairpin turns that punish the slightest mistake.', art: 'assets/tracks/placeholder_track_art.png' },
+                ],
+                gts: [
+                    { name: 'Apricot Hill Raceway', lore: 'The GARAGETUNE SESSIONS remix of this classic track focuses on the intensity of the final chicane, with a driving, aggressive beat.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'Autumn Ring', lore: 'A more atmospheric take, this GTS version captures the feeling of a cool, crisp morning at the track, with melodic synths and a steady rhythm.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'Complex String', lore: 'This remix is as intricate as the track itself, featuring complex layers of percussion and a driving bassline that mirrors the track\'s relentless pace.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'Deep Forest Raceway', lore: 'The GTS cut of Deep Forest is darker and more mysterious, with echoing drums and a haunting melody that evokes the feeling of speeding through its dark tunnels.', art: 'assets/tracks/placeholder_track_art.png' },
+                    { name: 'Grand Valley Speedway', lore: 'An epic, extended mix for an epic track. This version builds slowly, reaching a massive crescendo that mirrors the rush of hitting the main straight.', art: 'assets/tracks/placeholder_track_art.png' },
+                ]
+            };
+
 
             // --- Hacking Console ---
             const hackingConsoleContainer = document.getElementById('hacking-console-container');
@@ -1263,7 +1400,7 @@
                         playerData.visitedDepartments.add(department);
                         savePlayerData();
 
-                        const departmentName = `THE ${department.toUpperCase().replace('QLSIM', 'QL SIMULATOR').replace('SETTINGS', 'DRIVER DATA')}`;
+                        const departmentName = `THE ${department.toUpperCase().replace('QLSIM', 'QL SIMULATOR').replace('SETTINGS', 'DRIVER DATA').replace('RACESELECT', 'RACE SELECT')}`;
                         departmentHeader.textContent = departmentName;
                         void departmentHeader.offsetWidth; // Trigger reflow to restart animation
                         departmentHeader.classList.add('header-animate');
@@ -1283,7 +1420,12 @@
                         } else if (department === 'settings') {
                             driverDataScreen.classList.remove('hidden');
                             updateDriverDataUI();
-                        } else if(department !== 'boiler-room') {
+                        } else if (department === 'race-select') {
+                            raceSelectScreen.classList.remove('hidden');
+                            albumSelectView.classList.remove('hidden');
+                            trackSelectView.classList.add('hidden');
+                        }
+                        else if(department !== 'boiler-room') {
                             departmentView.style.backgroundImage = "none";
                             departmentView.style.backgroundColor = "#111";
                         }
@@ -1334,7 +1476,7 @@
             
             function updateDriverDataUI() {
                 const secretsFound = Object.values(playerData.puzzlesFound).filter(Boolean).length;
-                dataVisited.textContent = `${playerData.visitedDepartments.size} / 5`;
+                dataVisited.textContent = `${playerData.visitedDepartments.size} / 6`;
                 dataSecrets.textContent = `${secretsFound} / 3`;
                 masterVolumeSlider.value = playerData.settings.masterVolume;
                 crtToggle.checked = playerData.settings.crtEffect;
@@ -1395,7 +1537,7 @@
                 });
             });
             
-            // Department Logic (Lobby, Datalab, Garage, QL Sim)
+            // Department Logic (Lobby, Datalab, Garage, QL Sim, Race Select)
             function setupLobbyRoom(roomIndex) {
                 hqLobby.style.backgroundImage = `url(${lobbyBackgrounds[roomIndex]})`;
                 departmentHotspots.forEach(el => el.classList.add('hidden'));
@@ -1405,6 +1547,7 @@
                     ['garage', 'datalab', 'rally', 'ql-sim'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
                     lobbyNavHotspots['1-2'].classList.remove('hidden');
                 } else if (roomIndex === 1) {
+                    document.querySelector('.department-hotspot[data-target="race-select"]').classList.remove('hidden');
                     lobbyNavHotspots['2-1'].classList.remove('hidden');
                     lobbyNavHotspots['2-3'].classList.remove('hidden');
                 } else if (roomIndex === 2) {
@@ -1477,6 +1620,47 @@
                 `;
                  // Add event listeners for QL controls here
             }
+
+            function setupRaceSelect(albumKey) {
+                albumSelectView.classList.add('hidden');
+                trackSelectView.classList.remove('hidden');
+                trackListContainer.innerHTML = '';
+                const albumTracks = albums[albumKey];
+                
+                albumTracks.forEach((track, index) => {
+                    const trackEl = document.createElement('div');
+                    trackEl.className = 'track-item';
+                    trackEl.textContent = track.name;
+                    trackEl.dataset.index = index;
+                    trackListContainer.appendChild(trackEl);
+                    
+                    trackEl.addEventListener('click', () => {
+                        playSound('A4');
+                        updateTrackDetails(albumKey, index);
+                    });
+                     trackEl.addEventListener('mouseover', () => playSound('F5'));
+                });
+
+                updateTrackDetails(albumKey, 0);
+            }
+            
+            function updateTrackDetails(albumKey, trackIndex) {
+                document.querySelectorAll('.track-item').forEach((el, index) => {
+                    el.classList.toggle('selected', index === trackIndex);
+                });
+
+                const track = albums[albumKey][trackIndex];
+                trackImage.style.backgroundImage = `url(${track.art})`;
+                trackLore.innerHTML = `<h3>${track.name.toUpperCase()}</h3><p>${track.lore}</p>`;
+            }
+            
+            document.querySelectorAll('.album-select-option').forEach(el => {
+                el.addEventListener('click', () => {
+                    playSound('E4');
+                    const albumKey = el.dataset.album;
+                    setupRaceSelect(albumKey);
+                });
+            });
 
             // Hacking Console Logic
             accessTerminalButton.addEventListener('click', () => hackingConsoleContainer.classList.remove('hidden'));
@@ -1742,7 +1926,7 @@
                                 setupAudio();
                                 setupSounds();
                                 shufflePlaylist();
-                                loadTrack(currentTrackIndex, false); 
+                                loadTrack(currentTrackIndex, true); 
                                 isMusicInitialized = true;
                              }
                          });
