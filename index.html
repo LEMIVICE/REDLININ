@@ -331,6 +331,24 @@
              padding: 10px 30px;
              border-top: 2px solid #FF2D00;
              border-bottom: 2px solid #FF2D00;
+             opacity: 0; /* for animation */
+        }
+        
+        .header-animate {
+            animation: slide-in-blurred 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        @keyframes slide-in-blurred {
+            0% {
+                transform: translateY(-50px) translateX(-50%);
+                filter: blur(5px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0) translateX(-50%);
+                filter: blur(0);
+                opacity: 1;
+            }
         }
         
         .department-button {
@@ -885,7 +903,7 @@
         <div class="department-hotspot hotspot" style="top: 40%; left: 45%; width: 150px; height: 150px;" data-target="datalab">
             <div class="hotspot-label">THE DATALAB</div>
         </div>
-        <div class="department-hotspot hotspot" style="top: 25%; left: 75%; width: 15%; height: 50%;" data-target="lounge">
+        <div class="department-hotspot hotspot" style="top: 25%; left: 75%; width: 15%; height: 50%; border-radius: 10px;" data-target="lounge">
             <div class="hotspot-label">THE LIQUID LOUNGE</div>
         </div>
         <div class="department-hotspot hotspot" style="top: 55%; left: 88%; width: 80px; height: 120px;" data-target="rally">
@@ -1041,10 +1059,11 @@
     <div id="puzzle-1" class="glitch-artifact hidden" style="bottom: 5%; right: 5%;"></div>
 
 
-    <audio id="boiler-room-audio" loop>
-        <source src="assets/sfx/boiler_room_ambience.wav" type="audio/wav">
-    </audio>
-
+    <!-- Ambient Audio -->
+    <audio id="boiler-room-audio" loop><source src="assets/sfx/boiler_room_ambience.wav" type="audio/wav"></audio>
+    <audio id="garage-audio" loop><source src="assets/sfx/garage_ambience.wav" type="audio/wav"></audio>
+    <audio id="datalab-audio" loop><source src="assets/sfx/datalab_ambience.wav" type="audio/wav"></audio>
+    <audio id="lounge-audio" loop><source src="assets/sfx/lounge_ambience.wav" type="audio/wav"></audio>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -1105,16 +1124,9 @@
                 'puzzle-2': document.getElementById('puzzle-2'),
                 'puzzle-3': document.getElementById('puzzle-3'),
             };
-
-            const boilerRoomHotspot = document.getElementById('boiler-room-hotspot');
-            const boilerRoomAudio = document.getElementById('boiler-room-audio');
             
-            // --- Department States ---
-            let currentLobbyRoom = 0;
-            let currentDatalabRoom = 0;
-            let currentGarageRoom = 0;
-            let currentLoungeRoom = 0;
-
+            // --- Department States & Elements ---
+            let currentLobbyRoom = 0, currentDatalabRoom = 0, currentGarageRoom = 0, currentLoungeRoom = 0;
             const lobbyBackgrounds = ['assets/hq_lobby_bg.png', 'assets/hq_lobby2_bg.png', 'assets/hq_lobby3_bg.png'];
             const datalabBackgrounds = ['assets/datalab1.png', 'assets/datalab2.png', 'assets/datalab3.png'];
             const garageBackgrounds = ['assets/garage_bg1.png', 'assets/garage_bg2.png'];
@@ -1125,14 +1137,11 @@
                 '1-2': document.getElementById('lobby-nav-1-to-2'), '2-1': document.getElementById('lobby-nav-2-to-1'),
                 '2-3': document.getElementById('lobby-nav-2-to-3'), '3-2': document.getElementById('lobby-nav-3-to-2'),
             };
-            const datalabNavLeft = document.getElementById('datalab-nav-left');
-            const datalabNavRight = document.getElementById('datalab-nav-right');
+            const datalabNavLeft = document.getElementById('datalab-nav-left'), datalabNavRight = document.getElementById('datalab-nav-right');
             const accessTerminalButton = document.getElementById('access-terminal-button');
-            const garageNavDoor = document.getElementById('garage-nav-door');
-            const returnToBayButton = document.getElementById('return-to-bay-button');
+            const garageNavDoor = document.getElementById('garage-nav-door'), returnToBayButton = document.getElementById('return-to-bay-button');
             const garageSchematics = document.getElementById('garage-schematics');
-            const loungeNavDoor = document.getElementById('lounge-nav-door');
-            const returnToLoungeButton = document.getElementById('return-to-lounge-button');
+            const loungeNavDoor = document.getElementById('lounge-nav-door'), returnToLoungeButton = document.getElementById('return-to-lounge-button');
             const qlSimCockpit = document.getElementById('ql-sim-cockpit');
 
             // --- Hacking Console ---
@@ -1155,9 +1164,25 @@
             let audioSource, gainNode, analyser, audioBuffer, isPlaying = false, currentTrackIndex = 0;
             let audioStartTime = 0, startOffset = 0, animationFrameId;
             let isMusicInitialized = false;
-            let synth; // For UI sounds
+            let synth; 
 
-            const playlist = [
+            // --- Ambient Audio Elements ---
+            const boilerRoomAudio = document.getElementById('boiler-room-audio');
+            const garageAudio = document.getElementById('garage-audio');
+            const datalabAudio = document.getElementById('datalab-audio');
+            const loungeAudio = document.getElementById('lounge-audio');
+            const allAmbientSounds = [boilerRoomAudio, garageAudio, datalabAudio, loungeAudio];
+            const departmentSounds = {
+                'garage': garageAudio, 'datalab': datalabAudio, 'lounge': loungeAudio, 'boiler-room': boilerRoomAudio
+            };
+
+            const playlist = [ /* ... Full playlist ... */ ];
+            const playPauseBtn = document.getElementById('play-pause-btn'), nextBtn = document.getElementById('next-btn'), prevBtn = document.getElementById('prev-btn');
+            const seekSlider = document.getElementById('seek-slider'), volumeSlider = document.getElementById('volume-slider');
+            const trackDisplay = document.getElementById('track-display'), timeDisplay = document.getElementById('time-display');
+            
+            // (Re-inserting the full playlist array)
+            playlist.push(
                  { title: 'Apricot Hill Raceway', file: 'assets/music/Apricot Hill Raceway.mp3' },
                  { title: 'Autumn Ring', file: 'assets/music/Autumn Ring.mp3' },
                  { title: 'Complex String', file: 'assets/music/Complex String.mp3' },
@@ -1170,16 +1195,9 @@
                  { title: 'Special Stage Route 5', file: 'assets/music/Special Stage Route 5.mp3' },
                  { title: 'Special Stage Route 11', file: 'assets/music/Special Stage Route 11.mp3' },
                  { title: 'Tahiti Road', file: 'assets/music/Tahiti Road.mp3' },
-                 { title: 'Trail Mountain', file: 'assets/music/Trail Mountain.mp3' },
-            ];
+                 { title: 'Trail Mountain', file: 'assets/music/Trail Mountain.mp3' }
+            );
 
-            const playPauseBtn = document.getElementById('play-pause-btn');
-            const nextBtn = document.getElementById('next-btn');
-            const prevBtn = document.getElementById('prev-btn');
-            const seekSlider = document.getElementById('seek-slider');
-            const volumeSlider = document.getElementById('volume-slider');
-            const trackDisplay = document.getElementById('track-display');
-            const timeDisplay = document.getElementById('time-display');
 
             // --- Sound Effects ---
             function setupSounds() {
@@ -1210,8 +1228,10 @@
                 transitionOverlay.classList.add('active');
                 currentState = 'loading';
                 
-                boilerRoomAudio.pause();
-                boilerRoomAudio.currentTime = 0;
+                allAmbientSounds.forEach(sound => {
+                    sound.pause();
+                    sound.currentTime = 0;
+                });
 
                 setTimeout(() => {
                     // Hide all major screens
@@ -1219,6 +1239,7 @@
                     
                     // Hide all department-specific UI
                     document.querySelectorAll('.department-ui').forEach(el => el.classList.add('hidden'));
+                    departmentHeader.classList.remove('header-animate');
 
                     let locationText = '';
                     let showHud = false;
@@ -1242,27 +1263,25 @@
 
                         const departmentName = `THE ${department.toUpperCase().replace('QLSIM', 'QL SIMULATOR').replace('SETTINGS', 'DRIVER DATA')}`;
                         departmentHeader.textContent = departmentName;
+                        void departmentHeader.offsetWidth; // Trigger reflow to restart animation
+                        departmentHeader.classList.add('header-animate');
+
                         locationText = `DEPT: ${departmentName}`;
                         
                         if (isPlaying) pauseTrack();
+                        if (departmentSounds[department]) departmentSounds[department].play();
                         
                         // Department Specific Setup
                         if (department === 'datalab') setupDatalabRoom(currentDatalabRoom = 0);
                         else if (department === 'garage') setupGarageRoom(currentGarageRoom = 0);
                         else if (department === 'lounge') setupLoungeRoom(currentLoungeRoom = 0);
-                        else if (department === 'boiler-room') {
-                            boilerRoomAudio.play();
-                            departmentView.style.backgroundImage = "url('assets/boiler_room_bg.png')";
-                        } else if (department === 'ql-sim') {
+                        else if (department === 'ql-sim') {
                             qlSimCockpit.classList.remove('hidden');
-                            departmentView.style.backgroundImage = "none";
                             setupQlSimPlayer();
                         } else if (department === 'settings') {
                             driverDataScreen.classList.remove('hidden');
-                            departmentView.style.backgroundImage = "none";
                             updateDriverDataUI();
-                        }
-                        else {
+                        } else if(department !== 'boiler-room') {
                             departmentView.style.backgroundImage = "none";
                             departmentView.style.backgroundColor = "#111";
                         }
@@ -1287,7 +1306,7 @@
             function savePlayerData() {
                 localStorage.setItem('redlininPlayerData', JSON.stringify({
                     ...playerData,
-                    visitedDepartments: [...playerData.visitedDepartments] // Convert Set to Array for JSON
+                    visitedDepartments: [...playerData.visitedDepartments]
                 }));
             }
 
