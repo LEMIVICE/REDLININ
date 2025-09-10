@@ -1038,7 +1038,7 @@
         <div class="department-hotspot hotspot" style="top: 40%; left: 45%; width: 150px; height: 150px;" data-target="datalab">
             <div class="hotspot-label">THE DATALAB</div>
         </div>
-        <div class="department-hotspot hotspot locked" style="top: 35%; right: 5%; width: 25%; height: 50%;" data-target="lounge">
+        <div class="department-hotspot hotspot locked" style="top: 40%; right: 5%; width: 20%; height: 50%;" data-target="lounge">
              <div class="hotspot-label">LOCKED</div>
         </div>
         <div class="department-hotspot hotspot locked" style="top: 55%; left: 88%; width: 80px; height: 120px;" data-target="rally">
@@ -1217,6 +1217,7 @@
     
     <!-- Ambient Audio -->
     <audio id="bootup-audio"><source src="assets/sfx/bootup_chime.mp3" type="audio/mpeg"></audio>
+    <audio id="racecar-sfx-audio"><source src="assets/sfx/SPLC-0214_FX_Oneshot_Racecar_F1_Race.wav" type="audio/wav"></audio>
     <audio id="boiler-room-audio" loop><source src="assets/sfx/boiler_room_ambience.wav" type="audio/wav"></audio>
     <audio id="garage-audio" loop><source src="assets/sfx/garage_repair_sfx.mp3" type="audio/mpeg"></audio>
     <audio id="datalab-audio" loop><source src="assets/sfx/datalab_ambience.wav" type="audio/wav"></audio>
@@ -1333,6 +1334,7 @@
             
             // --- MP3 Player & Sound ---
             const bootupAudio = document.getElementById('bootup-audio');
+            const racecarSfxAudio = document.getElementById('racecar-sfx-audio');
             const mp3Player = document.getElementById('mp3-player');
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             let audioSource, gainNode, analyser, audioBuffer, isPlaying = false, currentTrackIndex = 0;
@@ -1346,7 +1348,7 @@
             const garageAudio = document.getElementById('garage-audio');
             const datalabAudio = document.getElementById('datalab-audio');
             const loungeAudio = document.getElementById('lounge-audio');
-            const allAmbientSounds = [boilerRoomAudio, garageAudio, datalabAudio, loungeAudio, bootupAudio];
+            const allSounds = [boilerRoomAudio, garageAudio, datalabAudio, loungeAudio, bootupAudio, racecarSfxAudio];
             const departmentSounds = {
                 'garage': garageAudio, 'datalab': datalabAudio, 'lounge': loungeAudio, 'boiler-room': boilerRoomAudio
             };
@@ -1460,7 +1462,7 @@
                     oscillator: { type: 'sine' },
                     envelope: { attack: 0.005, decay: 0.2, sustain: 0.1, release: 0.3 }
                 }).toDestination();
-                Tone.Master.volume.value = Tone.gainToDb(playerData.settings.masterVolume / 100);
+                applySettings(); // Sets master volume for Tone.js
             }
             
             const playSound = (note, duration = '8n') => {
@@ -1483,9 +1485,11 @@
                 transitionOverlay.classList.add('active');
                 currentState = 'loading';
                 
-                allAmbientSounds.forEach(sound => {
-                    sound.pause();
-                    sound.currentTime = 0;
+                allSounds.forEach(sound => {
+                    if (sound !== bootupAudio && sound !== racecarSfxAudio) { // Don't stop one-shots
+                        sound.pause();
+                        sound.currentTime = 0;
+                    }
                 });
 
                 setTimeout(() => {
@@ -1608,6 +1612,9 @@
                 document.body.classList.toggle('no-crt', !playerData.settings.crtEffect);
                 if (gainNode) gainNode.gain.value = playerData.settings.masterVolume / 100;
                 if(Tone.Master) Tone.Master.volume.value = Tone.gainToDb(playerData.settings.masterVolume / 100);
+                 allSounds.forEach(sound => {
+                    if (!sound.loop) sound.volume = (playerData.settings.masterVolume / 100);
+                });
             }
             
             function updateDriverDataUI() {
@@ -1682,10 +1689,10 @@
                 Object.values(lobbyNavHotspots).forEach(el => el.classList.add('hidden'));
 
                 if (roomIndex === 0) {
-                    ['garage', 'rally'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
+                    ['garage', 'rally', 'ql-sim'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
                     lobbyNavHotspots['1-2'].classList.remove('hidden');
                 } else if (roomIndex === 1) {
-                    ['datalab', 'race-select', 'ql-sim'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
+                    ['datalab', 'race-select'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
                     lobbyNavHotspots['2-1'].classList.remove('hidden');
                     lobbyNavHotspots['2-3'].classList.remove('hidden');
                 } else if (roomIndex === 2) {
@@ -2031,8 +2038,8 @@
 
                 return new Promise((resolve) => {
                     const primeAndResolve = () => {
-                        allAmbientSounds.forEach(sound => {
-                            sound.volume = 0.5;
+                        allSounds.forEach(sound => {
+                            sound.volume = 0.5; // A default, can be overridden by settings
                             sound.play().then(() => sound.pause()).catch(()=>{}); 
                         });
                         
@@ -2066,7 +2073,7 @@
                     action();
                 }
             };
-
+            
             const startBootSequence = () => {
                 handleUserInteraction().then(() => {
                     initialScreen.classList.add('hidden');
@@ -2084,6 +2091,7 @@
                         bootSeq.classList.add('hidden');
                         titleScreen.classList.remove('hidden');
                         currentState = 'title';
+                        racecarSfxAudio.play();
                         redlininLogo.style.animation = 'slam-in 0.5s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275)';
                         setTimeout(() => pressStart.classList.remove('hidden'), 500);
                     }, 6000);
