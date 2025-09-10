@@ -1484,9 +1484,17 @@
                 playSound('C2', '4n');
                 loadingScreen.classList.remove('hidden');
                 currentState = 'loading';
+                
+                // Stop looping sounds
+                allSounds.forEach(sound => {
+                    if (sound.loop) { 
+                        sound.pause();
+                        sound.currentTime = 0;
+                    }
+                });
 
-                // Fade out menu theme if it's playing
-                if (racecarSfxAudio && !racecarSfxAudio.paused) {
+                // Specifically fade out the menu theme when going to the lobby
+                if (targetState === 'hq-lobby' && racecarSfxAudio && !racecarSfxAudio.paused) {
                     let fadeOutInterval = setInterval(() => {
                         if (racecarSfxAudio.volume > 0.1) {
                             racecarSfxAudio.volume -= 0.1;
@@ -1494,17 +1502,10 @@
                             clearInterval(fadeOutInterval);
                             racecarSfxAudio.pause();
                             racecarSfxAudio.currentTime = 0;
-                            racecarSfxAudio.volume = 1.0;
+                            // Don't reset volume to 1 here, let master volume handle it
                         }
                     }, 100);
                 }
-                
-                allSounds.forEach(sound => {
-                    if (sound.loop) { 
-                        sound.pause();
-                        sound.currentTime = 0;
-                    }
-                });
 
                 setTimeout(() => {
                     // Hide all major screens
