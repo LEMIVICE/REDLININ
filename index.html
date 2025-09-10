@@ -1173,7 +1173,7 @@
                      <div id="color-swatches">
                          <div class="swatch selected" style="background-color: #40E0D0;" data-color="#40E0D0"></div>
                          <div class="swatch" style="background-color: #FFD700;" data-color="#FFD700"></div>
-                         <div class="swatch" style="background-color: #BE29EC;" data-color="#BE29EC"></div>
+                         <div class="swatch" style="background-color: #BE2EC;" data-color="#BE29EC"></div>
                      </div>
                  </div>
              </div>
@@ -1217,7 +1217,7 @@
     
     <!-- Ambient Audio -->
     <audio id="bootup-audio"><source src="assets/sfx/bootup_chime.mp3" type="audio/mpeg"></audio>
-    <audio id="racecar-sfx-audio"><source src="assets/sfx/0-100 DreamCast Version.mp3" type="audio/mpeg"></audio>
+    <audio id="racecar-sfx-audio"><source src="assets/music/0-100_DreamCast_Version.mp3" type="audio/mpeg"></audio>
     <audio id="boiler-room-audio" loop><source src="assets/sfx/boiler_room_ambience.wav" type="audio/wav"></audio>
     <audio id="garage-audio" loop><source src="assets/sfx/garage_repair_sfx.mp3" type="audio/mpeg"></audio>
     <audio id="datalab-audio" loop><source src="assets/sfx/datalab_ambience.wav" type="audio/wav"></audio>
@@ -1617,7 +1617,7 @@
                 if (gainNode) gainNode.gain.value = playerData.settings.masterVolume / 100;
                 if(Tone.Master) Tone.Master.volume.value = Tone.gainToDb(playerData.settings.masterVolume / 100);
                  allSounds.forEach(sound => {
-                    if (!sound.loop) sound.volume = (playerData.settings.masterVolume / 100);
+                    sound.volume = (playerData.settings.masterVolume / 100);
                 });
             }
             
@@ -2082,7 +2082,7 @@
                     initialScreen.classList.add('hidden');
                     bootSeq.classList.remove('hidden');
                     currentState = 'boot';
-                    bootupAudio.volume = 1.0;
+                    bootupAudio.volume = 1.0; // Ensure it's audible
                     bootupAudio.play();
                     
                     setTimeout(() => {
@@ -2099,7 +2099,7 @@
                         setTimeout(() => {
                             racecarSfxAudio.play();
                             redlininLogo.style.animation = 'slam-in 0.5s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                        }, 500); // Wait a bit after transition to start animation
+                        }, 500);
                         
                     }, 6000);
                 });
