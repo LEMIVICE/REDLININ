@@ -14,6 +14,7 @@
         /* Custom Styles for the "Digital Redline" Aesthetic */
         :root {
             --accent-color: #40E0D0; /* Default Cyan */
+            --locked-color: #FF2D00; /* Red for locked elements */
         }
         body {
             background-color: #000000;
@@ -264,10 +265,16 @@
             cursor: none;
         }
 
-        .hotspot:hover {
+        .hotspot:not(.locked):hover {
             background-color: rgba(255, 45, 0, 0.3);
             border: 2px solid var(--accent-color);
             box-shadow: 0 0 20px var(--accent-color);
+        }
+        
+        .hotspot.locked:hover {
+            background-color: rgba(255, 45, 0, 0.3);
+            border: 2px solid var(--locked-color);
+            box-shadow: 0 0 20px var(--locked-color);
         }
 
         .hotspot-label {
@@ -598,7 +605,7 @@
             height: 30px;
             background-color: #FF2D00;
             cursor: none;
-            z-index: 170; /* Increased z-index */
+            z-index: 1000;
             animation: glitch-anim 1.5s infinite steps(8);
         }
 
@@ -986,9 +993,15 @@
     <!-- Custom Cursor -->
     <div id="cursor-dot"></div>
     <div id="cursor-ring"></div>
+    
+    <!-- Initial Screen -->
+    <div id="initial-screen" style="width:100vw; height: 100vh; display: flex; justify-content:center; align-items:center;">
+         <h1 id="initial-press-start" class="font-orbitron text-2xl" style="color: #EFEFEF; text-shadow: 0 0 10px #FF2D00; animation: blink 1s infinite;">PRESS START</h1>
+    </div>
+
 
     <!-- Boot Sequence -->
-    <div id="boot-sequence">
+    <div id="boot-sequence" class="hidden">
         <div id="lv-emblem-screen" class="boot-screen">
              <img src="assets/lemi_vice_logo.png" alt="Lemi Vice Emblem">
         </div>
@@ -1000,7 +1013,7 @@
     <!-- Main Title Screen -->
     <div id="title-screen" class="hidden">
         <img id="redlinin-logo" src="assets/redlinin_logo.png" alt="Redlinin Logo">
-        <h1 id="press-start" class="hidden">PRESS START</h1>
+        <!-- "Press Start" is now on the initial screen -->
     </div>
 
     <!-- Main Menu -->
@@ -1025,14 +1038,14 @@
         <div class="department-hotspot hotspot" style="top: 40%; left: 45%; width: 150px; height: 150px;" data-target="datalab">
             <div class="hotspot-label">THE DATALAB</div>
         </div>
-        <div class="department-hotspot hotspot" style="top: 25%; right: 5%; width: 25%; height: 50%; border-radius: 10px;" data-target="lounge">
-            <div class="hotspot-label">THE LIQUID LOUNGE</div>
+        <div class="department-hotspot hotspot locked" style="top: 45%; right: 5%; width: 15%; height: 50%;" data-target="lounge">
+             <div class="hotspot-label">LOCKED</div>
         </div>
-        <div class="department-hotspot hotspot" style="top: 55%; left: 88%; width: 80px; height: 120px;" data-target="rally">
-            <div class="hotspot-label">THE RALLY DIVISION</div>
+        <div class="department-hotspot hotspot locked" style="top: 55%; left: 88%; width: 80px; height: 120px;" data-target="rally">
+             <div class="hotspot-label">LOCKED</div>
         </div>
-        <div class="department-hotspot hotspot" style="top: 65%; left: 70%; width: 180px; height: 100px;" data-target="ql-sim">
-            <div class="hotspot-label">QL SIMULATOR</div>
+        <div class="department-hotspot hotspot locked" style="top: 65%; left: 70%; width: 180px; height: 100px;" data-target="ql-sim">
+             <div class="hotspot-label">LOCKED</div>
         </div>
          <div class="department-hotspot hotspot" style="top: 40%; left: 30%; width: 120px; height: 120px;" data-target="race-select">
             <div class="hotspot-label">RACE SELECT</div>
@@ -1203,6 +1216,7 @@
     <div id="notification" class="hidden"></div>
     
     <!-- Ambient Audio -->
+    <audio id="bootup-audio"><source src="assets/sfx/bootup_chime.mp3" type="audio/mpeg"></audio>
     <audio id="boiler-room-audio" loop><source src="assets/sfx/boiler_room_ambience.wav" type="audio/wav"></audio>
     <audio id="garage-audio" loop><source src="assets/sfx/garage_repair_sfx.mp3" type="audio/mpeg"></audio>
     <audio id="datalab-audio" loop><source src="assets/sfx/datalab_ambience.wav" type="audio/wav"></audio>
@@ -1211,12 +1225,13 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- DOM Element Cache ---
+            const initialScreen = document.getElementById('initial-screen');
+            const initialPressStart = document.getElementById('initial-press-start');
             const bootSeq = document.getElementById('boot-sequence');
             const lvScreen = document.getElementById('lv-emblem-screen');
             const pubScreen = document.getElementById('publisher-screen');
             const titleScreen = document.getElementById('title-screen');
             const redlininLogo = document.getElementById('redlinin-logo');
-            const pressStart = document.getElementById('press-start');
             const loadingScreen = document.getElementById('loading-screen');
             const hqLobby = document.getElementById('hq-lobby');
             const departmentView = document.getElementById('department-view');
@@ -1249,7 +1264,7 @@
             document.body.addEventListener('mouseup', () => cursorDot.style.transform = 'scale(1)');
 
             // --- Game State & Data ---
-            let currentState = 'boot';
+            let currentState = 'initial';
             let currentMenuSelection = 0;
             const menuOptions = ['new-game', 'settings'];
             let playerData = {
@@ -1275,6 +1290,7 @@
             const datalabBackgrounds = ['assets/datalab1.png', 'assets/datalab2.png', 'assets/datalab3.png'];
             const garageBackgrounds = ['assets/garage_bg1.png', 'assets/garage_bg2.png'];
             const loungeBackgrounds = ['assets/liquid_lounge_bg.png', 'assets/liquid_lounge_bg2.png'];
+            const lockedDepartments = ['lounge', 'ql-sim', 'rally'];
 
             const departmentHotspots = document.querySelectorAll('.department-hotspot');
             const lobbyNavHotspots = {
@@ -1315,6 +1331,7 @@
             let currentAlbumTracks = [];
             
             // --- MP3 Player & Sound ---
+            const bootupAudio = document.getElementById('bootup-audio');
             const mp3Player = document.getElementById('mp3-player');
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             let audioSource, gainNode, analyser, audioBuffer, isPlaying = false, currentTrackIndex = 0;
@@ -1328,7 +1345,7 @@
             const garageAudio = document.getElementById('garage-audio');
             const datalabAudio = document.getElementById('datalab-audio');
             const loungeAudio = document.getElementById('lounge-audio');
-            const allAmbientSounds = [boilerRoomAudio, garageAudio, datalabAudio, loungeAudio];
+            const allAmbientSounds = [boilerRoomAudio, garageAudio, datalabAudio, loungeAudio, bootupAudio];
             const departmentSounds = {
                 'garage': garageAudio, 'datalab': datalabAudio, 'lounge': loungeAudio, 'boiler-room': boilerRoomAudio
             };
@@ -1460,7 +1477,7 @@
 
             // --- Core Functions ---
             
-            const transition = (targetState) => {
+            const transition = (targetState, isReturn = false) => {
                 playSound('C2', '4n');
                 transitionOverlay.classList.add('active');
                 currentState = 'loading';
@@ -1492,8 +1509,13 @@
                              savePlayerData();
                         }
                         setupLobbyRoom(currentLobbyRoom);
-                        if (isMusicInitialized && !isPlaying) {
-                            playTrack();
+                        
+                        if (isMusicInitialized) {
+                            if (isReturn) {
+                                playNext(); // Start a new song on return
+                            } else if (!isPlaying) {
+                                playTrack(); // Resume if paused
+                            }
                         }
 
                     } else if (targetState.startsWith('department-')) {
@@ -1567,7 +1589,11 @@
                         if (parsedData[key] !== undefined) {
                             if (key === 'visitedDepartments') {
                                 playerData[key] = new Set(parsedData[key]);
-                            } else {
+                            } else if (key === 'puzzlesFound' && typeof parsedData[key] === 'object') {
+                                // Ensure puzzlesFound is a proper object
+                                playerData[key] = { ...playerData.puzzlesFound, ...parsedData[key]};
+                            }
+                            else {
                                 playerData[key] = parsedData[key];
                             }
                         }
@@ -1636,8 +1662,8 @@
             
             Object.keys(puzzles).forEach(key => {
                 puzzles[key].addEventListener('click', () => {
-                    const puzzleNum = key.split('-')[1];
                     if (!playerData.puzzlesFound[key]) {
+                        const puzzleNum = key.split('-')[1];
                         playChime(['C5', 'E5', 'G5']);
                         playerData.puzzlesFound[key] = true;
                         puzzles[key].classList.add('hidden');
@@ -1655,10 +1681,10 @@
                 Object.values(lobbyNavHotspots).forEach(el => el.classList.add('hidden'));
 
                 if (roomIndex === 0) {
-                    ['garage', 'rally', 'ql-sim'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
+                    ['garage', 'rally'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
                     lobbyNavHotspots['1-2'].classList.remove('hidden');
                 } else if (roomIndex === 1) {
-                    ['datalab', 'race-select'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
+                    ['datalab', 'race-select', 'ql-sim'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
                     lobbyNavHotspots['2-1'].classList.remove('hidden');
                     lobbyNavHotspots['2-3'].classList.remove('hidden');
                 } else if (roomIndex === 2) {
@@ -2008,6 +2034,13 @@
                             sound.volume = 0.5;
                             sound.play().then(() => sound.pause()).catch(()=>{}); 
                         });
+                        
+                        setupAudio();
+                        setupSounds();
+                        shufflePlaylist();
+                        loadTrack(currentTrackIndex, false);
+                        isMusicInitialized = true;
+                        
                         resolve();
                     };
 
@@ -2020,34 +2053,53 @@
             }
 
             const handleMenuClick = (isEnterKey = false) => {
-                handleUserInteraction().then(() => {
-                    if (!isMusicInitialized && !isEnterKey) {
-                        setupAudio();
-                        setupSounds();
-                        shufflePlaylist();
-                        loadTrack(currentTrackIndex, false);
-                        isMusicInitialized = true;
-                    }
-
-                    if (currentState === 'main-menu' || (currentState === 'title' && isEnterKey)) {
+                const action = () => {
+                     if (currentState === 'main-menu' || currentState === 'title') {
                         const target = menuOptions[currentMenuSelection] === 'new-game' ? 'hq-lobby' : 'department-settings';
                         transition(target);
                     }
+                };
+                if (!userInteracted) {
+                    handleUserInteraction().then(action);
+                } else {
+                    action();
+                }
+            };
+
+            const startBootSequence = () => {
+                handleUserInteraction().then(() => {
+                    initialScreen.classList.add('hidden');
+                    bootSeq.classList.remove('hidden');
+                    currentState = 'boot';
+                    bootupAudio.play();
+                    
+                    setTimeout(() => {
+                        lvScreen.classList.add('hidden');
+                        pubScreen.classList.remove('hidden');
+                    }, 3000);
+
+                    setTimeout(() => {
+                        pubScreen.classList.add('hidden');
+                        bootSeq.classList.add('hidden');
+                        titleScreen.classList.remove('hidden');
+                        currentState = 'title';
+                        redlininLogo.style.animation = 'slam-in 0.5s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                        setTimeout(() => transition('main-menu'), 1500); // Transition to main menu automatically
+                    }, 6000);
                 });
             };
+
+            initialPressStart.addEventListener('click', startBootSequence);
 
             menuOptionNewGame.addEventListener('mouseover', () => { if(currentMenuSelection !== 0) { currentMenuSelection = 0; updateMenuSelection();} });
             menuOptionSettings.addEventListener('mouseover', () => { if(currentMenuSelection !== 1) { currentMenuSelection = 1; updateMenuSelection();} });
             menuOptionNewGame.addEventListener('click', () => handleMenuClick());
             menuOptionSettings.addEventListener('click', () => handleMenuClick());
-            pressStart.addEventListener('click', () => { 
-                if(currentState === 'title') { 
-                    handleUserInteraction().then(() => transition('main-menu')); 
-                } 
-            });
             
             window.addEventListener('keydown', (e) => {
-                if (currentState === 'main-menu') {
+                if (currentState === 'initial' && e.key === 'Enter') {
+                    startBootSequence();
+                } else if (currentState === 'main-menu') {
                     if (e.key === 'ArrowUp' || e.key === 'w') {
                         currentMenuSelection = (currentMenuSelection - 1 + menuOptions.length) % menuOptions.length;
                         updateMenuSelection();
@@ -2057,8 +2109,6 @@
                     } else if (e.key === 'Enter') {
                         handleMenuClick(true);
                     }
-                } else if (currentState === 'title' && e.key === 'Enter') {
-                     handleUserInteraction().then(() => transition('main-menu'));
                 }
             });
 
@@ -2073,41 +2123,34 @@
             // --- Event Listeners for Navigation ---
             document.querySelectorAll('.hotspot').forEach(hotspot => {
                 hotspot.addEventListener('mouseover', () => playSound('F5'));
+                hotspot.addEventListener('click', () => {
+                    const target = hotspot.dataset.target;
+                    if (hotspot.classList.contains('locked')) {
+                        playSound('C3', '4n');
+                        showNotification("DEPARTMENT LOCKED // ACCESS DENIED");
+                        return;
+                    }
+                    if (target) {
+                        transition(`department-${target}`);
+                    }
+                });
             });
 
-            document.querySelectorAll('.department-hotspot[data-target]').forEach(hotspot => {
-                 hotspot.addEventListener('click', () => transition(`department-${hotspot.dataset.target}`));
-            });
-            
             backButton.addEventListener('click', () => {
-                if (driverDataScreen.classList.contains('hidden')) {
-                    transition('hq-lobby');
-                } else {
+                if (currentState === 'department' && !driverDataScreen.classList.contains('hidden')) {
                     transition('main-menu');
+                } else {
+                    transition('hq-lobby', true); // Pass true to indicate it's a return trip
                 }
             });
 
-            // --- Initial Boot Sequence & Setup ---
+            // --- Initial Setup ---
             loadPlayerData();
             populateNewsTicker();
             setInterval(updateClock, 1000);
             updateClock();
             
             hudBar.classList.add('hidden');
-
-            setTimeout(() => {
-                lvScreen.classList.add('hidden');
-                pubScreen.classList.remove('hidden');
-            }, 3000);
-
-            setTimeout(() => {
-                pubScreen.classList.add('hidden');
-                bootSeq.classList.add('hidden');
-                titleScreen.classList.remove('hidden');
-                currentState = 'title';
-                redlininLogo.style.animation = 'slam-in 0.5s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                setTimeout(() => pressStart.classList.remove('hidden'), 500);
-            }, 6000);
         });
     </script>
 </body>
