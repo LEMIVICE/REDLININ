@@ -517,6 +517,12 @@
             border: 1px solid var(--accent-color);
         }
 
+        /* This container is the key to the fix */
+        #track-display-container {
+            flex-grow: 1;
+            min-width: 0; /* Allows the container to shrink */
+        }
+        
         #track-display {
             color: #EFEFEF;
             text-align: center;
@@ -526,7 +532,7 @@
             font-size: 0.8rem;
             overflow: hidden;
             white-space: nowrap;
-            text-overflow: ellipsis; /* Added for long names */
+            text-overflow: ellipsis; /* Should now work correctly */
         }
 
         .slider-container {
@@ -1053,7 +1059,7 @@
             <div id="mp3-body">
                  <div id="track-info">
                      <img id="album-art" src="assets/REDLININ_HQ_MENU_MUSIC__ART_1080_v1.png" alt="Album Art">
-                     <div style="flex-grow: 1;">
+                      <div id="track-display-container">
                         <div id="track-display">NOT PLAYING</div>
                         <div id="time-display" style="text-align:center; font-size: 0.8rem; color: #aaa;">0:00 / 0:00</div>
                      </div>
@@ -1455,6 +1461,7 @@
                     // Hide all department-specific UI
                     document.querySelectorAll('.department-ui').forEach(el => el.classList.add('hidden'));
                     departmentHeader.classList.remove('header-animate');
+                    backButton.textContent = "RETURN TO HQ"; // Reset button text
 
                     let locationText = '';
                     let showHud = false;
@@ -1464,8 +1471,10 @@
                         hqLobby.classList.remove('hidden');
                         currentState = 'hq-lobby';
                         locationText = 'LOCATION: HQ LOBBY';
-                        playerData.hasEnteredLobby = true; // Flag that lobby has been entered
-                        savePlayerData();
+                        if (!playerData.hasEnteredLobby) {
+                            playerData.hasEnteredLobby = true;
+                            savePlayerData();
+                        }
                         setupLobbyRoom(currentLobbyRoom);
                         if (isMusicInitialized && !isPlaying) {
                             playTrack();
@@ -1526,10 +1535,8 @@
             
             // --- Player Data & Settings ---
             function savePlayerData() {
-                localStorage.setItem('redlininPlayerData', JSON.stringify({
-                    ...playerData,
-                    visitedDepartments: [...playerData.visitedDepartments]
-                }));
+                const dataToSave = { ...playerData, visitedDepartments: [...playerData.visitedDepartments] };
+                localStorage.setItem('redlininPlayerData', JSON.stringify(dataToSave));
             }
 
             function loadPlayerData() {
@@ -1537,9 +1544,9 @@
                 if (savedData) {
                     const parsedData = JSON.parse(savedData);
                     playerData = {
-                        ...playerData,
-                        ...parsedData,
-                        puzzlesFound: parsedData.puzzlesFound || playerData.puzzlesFound, // Ensure puzzlesFound object exists
+                        ...playerData, // Keep defaults
+                        ...parsedData, // Overwrite with saved data
+                        puzzlesFound: parsedData.puzzlesFound || { 'puzzle-1': false, 'puzzle-2': false, 'puzzle-3': false },
                         visitedDepartments: new Set(parsedData.visitedDepartments)
                     };
                 }
@@ -1562,7 +1569,6 @@
                 colorSwatches.forEach(swatch => {
                     swatch.classList.toggle('selected', swatch.dataset.color === playerData.settings.accentColor);
                 });
-                // Show/hide puzzle 1 based on lobby entry
                 puzzles['puzzle-1'].classList.toggle('hidden', playerData.hasEnteredLobby || playerData.puzzlesFound['puzzle-1']);
             }
 
@@ -1863,7 +1869,7 @@
             }
 
             function playTrack() {
-                if (!audioBuffer || isPlaying) return;
+                if (!audioBuffer || isPlaying || !userInteracted) return;
                 
                 audioSource = audioContext.createBufferSource();
                 audioSource.buffer = audioBuffer;
@@ -1970,6 +1976,14 @@
                             sound.volume = 0.5;
                             sound.play().then(() => sound.pause()).catch(()=>{}); 
                         });
+                        
+                        if (!isMusicInitialized) {
+                            setupAudio();
+                            setupSounds();
+                            shufflePlaylist();
+                            loadTrack(currentTrackIndex, false); // Load but don't play
+                            isMusicInitialized = true;
+                        }
                         resolve();
                     };
 
@@ -1981,28 +1995,20 @@
                 });
             }
 
-            const handleMenuClick = (isEnterKey = false) => {
-                handleUserInteraction().then(() => {
-                     // Music should not start here, only on lobby entry.
-                    if (!isMusicInitialized && !isEnterKey) {
-                        setupAudio();
-                        setupSounds();
-                        shufflePlaylist();
-                        loadTrack(currentTrackIndex, false); // Load but don't play
-                        isMusicInitialized = true;
-                    }
-
-                    if (currentState === 'main-menu' || (currentState === 'title' && isEnterKey)) {
-                        const target = menuOptions[currentMenuSelection] === 'new-game' ? 'hq-lobby' : 'department-settings';
-                        transition(target);
+            const handleMenuClick = () => {
+                 handleUserInteraction().then(() => {
+                    if (currentState === 'main-menu' || currentState === 'title') {
+                        const selectedOption = menuOptions[currentMenuSelection];
+                        if (selectedOption === 'new-game') transition('hq-lobby');
+                        else if (selectedOption === 'settings') transition('department-settings');
                     }
                 });
             };
 
             menuOptionNewGame.addEventListener('mouseover', () => { if(currentMenuSelection !== 0) { currentMenuSelection = 0; updateMenuSelection();} });
             menuOptionSettings.addEventListener('mouseover', () => { if(currentMenuSelection !== 1) { currentMenuSelection = 1; updateMenuSelection();} });
-            menuOptionNewGame.addEventListener('click', () => handleMenuClick());
-            menuOptionSettings.addEventListener('click', () => handleMenuClick());
+            menuOptionNewGame.addEventListener('click', handleMenuClick);
+            menuOptionSettings.addEventListener('click', handleMenuClick);
             pressStart.addEventListener('click', () => { 
                 if(currentState === 'title') { 
                     handleUserInteraction().then(() => transition('main-menu')); 
@@ -2018,7 +2024,7 @@
                         currentMenuSelection = (currentMenuSelection + 1) % menuOptions.length;
                         updateMenuSelection();
                     } else if (e.key === 'Enter') {
-                        handleMenuClick(true);
+                        handleMenuClick();
                     }
                 } else if (currentState === 'title' && e.key === 'Enter') {
                      handleUserInteraction().then(() => transition('main-menu'));
@@ -2043,10 +2049,10 @@
             });
             
             backButton.addEventListener('click', () => {
-                if (driverDataScreen.classList.contains('hidden')) {
-                    transition('hq-lobby');
-                } else {
+                if (currentState === 'department' && departmentView.querySelector('#driver-data-screen:not(.hidden)')) {
                     transition('main-menu');
+                } else {
+                    transition('hq-lobby');
                 }
             });
 
