@@ -1573,7 +1573,7 @@
 
                     setTimeout(() => transitionOverlay.classList.remove('active'), 200);
 
-                }, 300);
+                }, 2300); // Extended loading time
             };
             
             // --- Player Data & Settings ---
@@ -2039,9 +2039,7 @@
                 return new Promise((resolve) => {
                     const primeAndResolve = () => {
                         allSounds.forEach(sound => {
-                            sound.volume = 0; // Mute initially
-                            sound.play().then(() => sound.pause()).catch(()=>{}); 
-                            sound.volume = 1; // Reset volume
+                            sound.load(); // Ensure audio is ready to be played
                         });
                         
                         setupAudio();
@@ -2090,7 +2088,7 @@
 
                     setTimeout(() => {
                         racecarSfxAudio.play();
-                    }, 5500);
+                    }, 4500); // Retimed
 
                     setTimeout(() => {
                         pubScreen.classList.add('hidden');
