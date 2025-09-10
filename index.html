@@ -1234,7 +1234,7 @@
             const menuOptions = ['new-game', 'settings'];
             let playerData = {
                 visitedDepartments: new Set(),
-                puzzlesFound: { puzzle1: false, puzzle2: false, puzzle3: false },
+                puzzlesFound: { 'puzzle-1': false, 'puzzle-2': false, 'puzzle-3': false },
                 settings: {
                     masterVolume: 50,
                     crtEffect: true,
@@ -1645,7 +1645,7 @@
                  datalabNavLeft.classList.remove('hidden');
                  datalabNavRight.classList.remove('hidden');
                  if (roomIndex === 1) {
-                     if (!playerData.puzzlesFound['puzzle2']) puzzles['puzzle-2'].classList.remove('hidden');
+                     if (!playerData.puzzlesFound['puzzle-2']) puzzles['puzzle-2'].classList.remove('hidden');
                      accessTerminalButton.classList.remove('hidden');
                  } else {
                      puzzles['puzzle-2'].classList.add('hidden');
@@ -1962,7 +1962,9 @@
                 // Prime all ambient audio to allow for future playback
                 allAmbientSounds.forEach(sound => {
                     sound.volume = 0.5; // Set a default volume for ambient sounds
-                    sound.play().then(() => sound.pause()).catch(e => {}); 
+                    sound.play().then(() => sound.pause()).catch(e => {
+                        // This catch block prevents errors on browsers that don't like this priming method
+                    }); 
                 });
 
                 const resumeAudioContext = () => {
