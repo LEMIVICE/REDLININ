@@ -517,22 +517,35 @@
             border: 1px solid var(--accent-color);
         }
 
-        /* This container is the key to the fix */
         #track-display-container {
             flex-grow: 1;
-            min-width: 0; /* Allows the container to shrink */
+            background-color: #000;
+            overflow: hidden;
+            position: relative;
+            height: 28px; /* Fixed height */
         }
         
         #track-display {
             color: #EFEFEF;
-            text-align: center;
-            background-color: #000;
+            text-align: left;
             padding: 5px;
-            margin-bottom: 10px;
             font-size: 0.8rem;
-            overflow: hidden;
             white-space: nowrap;
-            text-overflow: ellipsis; /* Should now work correctly */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: auto;
+        }
+
+        .scroll-text {
+            animation: scroll-left 10s linear infinite;
+        }
+        
+        @keyframes scroll-left {
+            0%   { transform: translateX(100%); }
+            10%  { transform: translateX(100%); }
+            90%  { transform: translateX(-100%); }
+            100% { transform: translateX(-100%); }
         }
 
         .slider-container {
@@ -1059,10 +1072,12 @@
             <div id="mp3-body">
                  <div id="track-info">
                      <img id="album-art" src="assets/REDLININ_HQ_MENU_MUSIC__ART_1080_v1.png" alt="Album Art">
-                      <div id="track-display-container">
-                        <div id="track-display">NOT PLAYING</div>
-                        <div id="time-display" style="text-align:center; font-size: 0.8rem; color: #aaa;">0:00 / 0:00</div>
-                     </div>
+                      <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; height: 60px;">
+                         <div id="track-display-container">
+                             <div id="track-display">NOT PLAYING</div>
+                         </div>
+                         <div id="time-display" style="text-align:center; font-size: 0.8rem; color: #aaa;">0:00 / 0:00</div>
+                      </div>
                  </div>
 
                 <div class="slider-container">
@@ -1419,6 +1434,7 @@
             const playPauseBtn = document.getElementById('play-pause-btn'), nextBtn = document.getElementById('next-btn'), prevBtn = document.getElementById('prev-btn');
             const seekSlider = document.getElementById('seek-slider'), volumeSlider = document.getElementById('volume-slider');
             const trackDisplay = document.getElementById('track-display'), timeDisplay = document.getElementById('time-display');
+            const trackDisplayContainer = document.getElementById('track-display-container');
             
             // --- Sound Effects ---
             function setupSounds() {
@@ -1472,8 +1488,8 @@
                         currentState = 'hq-lobby';
                         locationText = 'LOCATION: HQ LOBBY';
                         if (!playerData.hasEnteredLobby) {
-                            playerData.hasEnteredLobby = true;
-                            savePlayerData();
+                             playerData.hasEnteredLobby = true;
+                             savePlayerData();
                         }
                         setupLobbyRoom(currentLobbyRoom);
                         if (isMusicInitialized && !isPlaying) {
@@ -1535,20 +1551,27 @@
             
             // --- Player Data & Settings ---
             function savePlayerData() {
-                const dataToSave = { ...playerData, visitedDepartments: [...playerData.visitedDepartments] };
-                localStorage.setItem('redlininPlayerData', JSON.stringify(dataToSave));
+                 localStorage.setItem('redlininPlayerData', JSON.stringify({
+                    ...playerData,
+                    visitedDepartments: [...playerData.visitedDepartments],
+                    puzzlesFound: playerData.puzzlesFound
+                }));
             }
 
             function loadPlayerData() {
                 const savedData = localStorage.getItem('redlininPlayerData');
                 if (savedData) {
                     const parsedData = JSON.parse(savedData);
-                    playerData = {
-                        ...playerData, // Keep defaults
-                        ...parsedData, // Overwrite with saved data
-                        puzzlesFound: parsedData.puzzlesFound || { 'puzzle-1': false, 'puzzle-2': false, 'puzzle-3': false },
-                        visitedDepartments: new Set(parsedData.visitedDepartments)
-                    };
+                    // A simple merge to avoid errors if new properties are added to playerData
+                    Object.keys(playerData).forEach(key => {
+                        if (parsedData[key] !== undefined) {
+                            if (key === 'visitedDepartments') {
+                                playerData[key] = new Set(parsedData[key]);
+                            } else {
+                                playerData[key] = parsedData[key];
+                            }
+                        }
+                    });
                 }
                 applySettings();
             }
@@ -1569,6 +1592,7 @@
                 colorSwatches.forEach(swatch => {
                     swatch.classList.toggle('selected', swatch.dataset.color === playerData.settings.accentColor);
                 });
+                // Show/hide puzzle 1 based on lobby entry
                 puzzles['puzzle-1'].classList.toggle('hidden', playerData.hasEnteredLobby || playerData.puzzlesFound['puzzle-1']);
             }
 
@@ -1859,6 +1883,14 @@
                     
                     audioBuffer = decodedBuffer;
                     trackDisplay.textContent = playlist[index].title.toUpperCase();
+                    // Check for scrolling text
+                    trackDisplay.classList.remove('scroll-text');
+                    setTimeout(() => { // Timeout to allow browser to render and get correct width
+                        if (trackDisplay.scrollWidth > trackDisplayContainer.clientWidth) {
+                            trackDisplay.classList.add('scroll-text');
+                        }
+                    }, 50);
+
                     seekSlider.max = audioBuffer.duration;
                     seekSlider.value = 0;
                     if (autoplay) playTrack();
@@ -1869,7 +1901,7 @@
             }
 
             function playTrack() {
-                if (!audioBuffer || isPlaying || !userInteracted) return;
+                if (!audioBuffer || isPlaying) return;
                 
                 audioSource = audioContext.createBufferSource();
                 audioSource.buffer = audioBuffer;
@@ -1976,14 +2008,6 @@
                             sound.volume = 0.5;
                             sound.play().then(() => sound.pause()).catch(()=>{}); 
                         });
-                        
-                        if (!isMusicInitialized) {
-                            setupAudio();
-                            setupSounds();
-                            shufflePlaylist();
-                            loadTrack(currentTrackIndex, false); // Load but don't play
-                            isMusicInitialized = true;
-                        }
                         resolve();
                     };
 
@@ -1995,20 +2019,27 @@
                 });
             }
 
-            const handleMenuClick = () => {
-                 handleUserInteraction().then(() => {
-                    if (currentState === 'main-menu' || currentState === 'title') {
-                        const selectedOption = menuOptions[currentMenuSelection];
-                        if (selectedOption === 'new-game') transition('hq-lobby');
-                        else if (selectedOption === 'settings') transition('department-settings');
+            const handleMenuClick = (isEnterKey = false) => {
+                handleUserInteraction().then(() => {
+                    if (!isMusicInitialized && !isEnterKey) {
+                        setupAudio();
+                        setupSounds();
+                        shufflePlaylist();
+                        loadTrack(currentTrackIndex, false);
+                        isMusicInitialized = true;
+                    }
+
+                    if (currentState === 'main-menu' || (currentState === 'title' && isEnterKey)) {
+                        const target = menuOptions[currentMenuSelection] === 'new-game' ? 'hq-lobby' : 'department-settings';
+                        transition(target);
                     }
                 });
             };
 
             menuOptionNewGame.addEventListener('mouseover', () => { if(currentMenuSelection !== 0) { currentMenuSelection = 0; updateMenuSelection();} });
             menuOptionSettings.addEventListener('mouseover', () => { if(currentMenuSelection !== 1) { currentMenuSelection = 1; updateMenuSelection();} });
-            menuOptionNewGame.addEventListener('click', handleMenuClick);
-            menuOptionSettings.addEventListener('click', handleMenuClick);
+            menuOptionNewGame.addEventListener('click', () => handleMenuClick());
+            menuOptionSettings.addEventListener('click', () => handleMenuClick());
             pressStart.addEventListener('click', () => { 
                 if(currentState === 'title') { 
                     handleUserInteraction().then(() => transition('main-menu')); 
@@ -2024,7 +2055,7 @@
                         currentMenuSelection = (currentMenuSelection + 1) % menuOptions.length;
                         updateMenuSelection();
                     } else if (e.key === 'Enter') {
-                        handleMenuClick();
+                        handleMenuClick(true);
                     }
                 } else if (currentState === 'title' && e.key === 'Enter') {
                      handleUserInteraction().then(() => transition('main-menu'));
@@ -2049,10 +2080,10 @@
             });
             
             backButton.addEventListener('click', () => {
-                if (currentState === 'department' && departmentView.querySelector('#driver-data-screen:not(.hidden)')) {
-                    transition('main-menu');
-                } else {
+                if (driverDataScreen.classList.contains('hidden')) {
                     transition('hq-lobby');
+                } else {
+                    transition('main-menu');
                 }
             });
 
