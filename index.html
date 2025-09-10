@@ -526,6 +526,7 @@
             font-size: 0.8rem;
             overflow: hidden;
             white-space: nowrap;
+            text-overflow: ellipsis; /* Added for long names */
         }
 
         .slider-container {
@@ -1120,6 +1121,8 @@
                  <h3>SESSION DATA</h3>
                  <div class="data-row"><span>DEPARTMENTS VISITED:</span><span id="data-visited">0 / 6</span></div>
                  <div class="data-row"><span>SECRETS UNLOCKED:</span><span id="data-secrets">0 / 3</span></div>
+                 <!-- Puzzle 1 -->
+                 <div id="puzzle-1" class="glitch-artifact" style="top: 15%; right: 5%;"></div>
              </div>
              <div class="data-block">
                  <h3>SYSTEM SETTINGS</h3>
@@ -1178,10 +1181,6 @@
     <!-- Notification Area -->
     <div id="notification" class="hidden"></div>
     
-    <!-- Glitch Artifact for Main Menu -->
-    <div id="puzzle-1" class="glitch-artifact hidden" style="bottom: 5%; right: 5%;"></div>
-
-
     <!-- Ambient Audio -->
     <audio id="boiler-room-audio" loop><source src="assets/sfx/boiler_room_ambience.wav" type="audio/wav"></audio>
     <audio id="garage-audio" loop><source src="assets/sfx/garage_repair_sfx.mp3" type="audio/mpeg"></audio>
@@ -1239,7 +1238,8 @@
                     masterVolume: 50,
                     crtEffect: true,
                     accentColor: '#40E0D0'
-                }
+                },
+                hasEnteredLobby: false
             };
             
             const puzzles = {
@@ -1464,6 +1464,8 @@
                         hqLobby.classList.remove('hidden');
                         currentState = 'hq-lobby';
                         locationText = 'LOCATION: HQ LOBBY';
+                        playerData.hasEnteredLobby = true; // Flag that lobby has been entered
+                        savePlayerData();
                         setupLobbyRoom(currentLobbyRoom);
                         if (isMusicInitialized && !isPlaying) {
                             playTrack();
@@ -1497,6 +1499,7 @@
                             setupQlSimPlayer();
                         } else if (department === 'settings') {
                             driverDataScreen.classList.remove('hidden');
+                            backButton.textContent = "RETURN TO MAIN MENU";
                             updateDriverDataUI();
                         } else if (department === 'race-select') {
                             raceSelectScreen.classList.remove('hidden');
@@ -1509,7 +1512,6 @@
 
                     } else if (targetState === 'main-menu') {
                         mainMenu.classList.remove('hidden');
-                        puzzles['puzzle-1'].classList.remove('hidden');
                         currentState = 'main-menu';
                         updateMenuSelection();
                     } 
@@ -1537,6 +1539,7 @@
                     playerData = {
                         ...playerData,
                         ...parsedData,
+                        puzzlesFound: parsedData.puzzlesFound || playerData.puzzlesFound, // Ensure puzzlesFound object exists
                         visitedDepartments: new Set(parsedData.visitedDepartments)
                     };
                 }
@@ -1559,6 +1562,8 @@
                 colorSwatches.forEach(swatch => {
                     swatch.classList.toggle('selected', swatch.dataset.color === playerData.settings.accentColor);
                 });
+                // Show/hide puzzle 1 based on lobby entry
+                puzzles['puzzle-1'].classList.toggle('hidden', playerData.hasEnteredLobby || playerData.puzzlesFound['puzzle-1']);
             }
 
             masterVolumeSlider.addEventListener('input', (e) => {
@@ -1956,53 +1961,51 @@
             }
             
             function handleUserInteraction() {
-                if(userInteracted) return;
+                if(userInteracted) return Promise.resolve();
                 userInteracted = true;
 
-                // Prime all ambient audio to allow for future playback
-                allAmbientSounds.forEach(sound => {
-                    sound.volume = 0.5; // Set a default volume for ambient sounds
-                    sound.play().then(() => sound.pause()).catch(e => {
-                        // This catch block prevents errors on browsers that don't like this priming method
-                    }); 
-                });
+                return new Promise((resolve) => {
+                    const primeAndResolve = () => {
+                        allAmbientSounds.forEach(sound => {
+                            sound.volume = 0.5;
+                            sound.play().then(() => sound.pause()).catch(()=>{}); 
+                        });
+                        resolve();
+                    };
 
-                const resumeAudioContext = () => {
-                    if (!isMusicInitialized) {
+                    if (audioContext.state === 'suspended') {
+                         audioContext.resume().then(primeAndResolve);
+                    } else {
+                        primeAndResolve();
+                    }
+                });
+            }
+
+            const handleMenuClick = (isEnterKey = false) => {
+                handleUserInteraction().then(() => {
+                     // Music should not start here, only on lobby entry.
+                    if (!isMusicInitialized && !isEnterKey) {
                         setupAudio();
                         setupSounds();
                         shufflePlaylist();
-                        loadTrack(currentTrackIndex, true); // Autoplay on first interaction
+                        loadTrack(currentTrackIndex, false); // Load but don't play
                         isMusicInitialized = true;
-                    } else if (!isPlaying){
-                        playTrack();
                     }
-                };
 
-                if (audioContext.state === 'suspended') {
-                     audioContext.resume().then(resumeAudioContext);
-                } else {
-                    resumeAudioContext();
-                }
-            }
-
-            const handleMenuClick = () => {
-                handleUserInteraction();
-                if (currentState === 'main-menu' || currentState === 'title') {
-                    const selectedOption = menuOptions[currentMenuSelection];
-                    if (selectedOption === 'new-game') transition('hq-lobby');
-                    else if (selectedOption === 'settings') transition('department-settings');
-                }
+                    if (currentState === 'main-menu' || (currentState === 'title' && isEnterKey)) {
+                        const target = menuOptions[currentMenuSelection] === 'new-game' ? 'hq-lobby' : 'department-settings';
+                        transition(target);
+                    }
+                });
             };
 
             menuOptionNewGame.addEventListener('mouseover', () => { if(currentMenuSelection !== 0) { currentMenuSelection = 0; updateMenuSelection();} });
             menuOptionSettings.addEventListener('mouseover', () => { if(currentMenuSelection !== 1) { currentMenuSelection = 1; updateMenuSelection();} });
-            menuOptionNewGame.addEventListener('click', handleMenuClick);
-            menuOptionSettings.addEventListener('click', handleMenuClick);
+            menuOptionNewGame.addEventListener('click', () => handleMenuClick());
+            menuOptionSettings.addEventListener('click', () => handleMenuClick());
             pressStart.addEventListener('click', () => { 
-                handleUserInteraction();
                 if(currentState === 'title') { 
-                    transition('main-menu'); 
+                    handleUserInteraction().then(() => transition('main-menu')); 
                 } 
             });
             
@@ -2015,8 +2018,10 @@
                         currentMenuSelection = (currentMenuSelection + 1) % menuOptions.length;
                         updateMenuSelection();
                     } else if (e.key === 'Enter') {
-                        handleMenuClick();
+                        handleMenuClick(true);
                     }
+                } else if (currentState === 'title' && e.key === 'Enter') {
+                     handleUserInteraction().then(() => transition('main-menu'));
                 }
             });
 
@@ -2037,7 +2042,13 @@
                  hotspot.addEventListener('click', () => transition(`department-${hotspot.dataset.target}`));
             });
             
-            backButton.addEventListener('click', () => transition('hq-lobby'));
+            backButton.addEventListener('click', () => {
+                if (driverDataScreen.classList.contains('hidden')) {
+                    transition('hq-lobby');
+                } else {
+                    transition('main-menu');
+                }
+            });
 
             // --- Initial Boot Sequence & Setup ---
             loadPlayerData();
