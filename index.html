@@ -695,8 +695,8 @@
             cursor: none;
         }
         
-        /* DATALAB Navigation */
-        .datalab-nav, .lounge-nav {
+        /* DATALAB & LOUNGE Navigation */
+        .nav-button {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
@@ -709,7 +709,7 @@
             z-index: 160;
             transition: all 0.2s ease;
         }
-        .datalab-nav:hover, .lounge-nav:hover {
+        .nav-button:hover {
              background-color: var(--accent-color);
              color: #000;
         }
@@ -1084,8 +1084,8 @@
         <!-- Puzzle 2 Placeholder -->
         <div id="puzzle-2" class="glitch-artifact hidden department-ui" style="top: 80%; left: 10%;"></div>
         <!-- DATALAB UI -->
-        <button id="datalab-nav-left" class="datalab-nav nav-left hidden department-ui">&lt;</button>
-        <button id="datalab-nav-right" class="datalab-nav nav-right hidden department-ui">&gt;</button>
+        <button id="datalab-nav-left" class="nav-button nav-left hidden department-ui">&lt;</button>
+        <button id="datalab-nav-right" class="nav-button nav-right hidden department-ui">&gt;</button>
         <button id="access-terminal-button" class="hidden department-ui">ACCESS TERMINAL</button>
         <!-- Garage UI -->
         <div id="garage-nav-door" class="hotspot hidden department-ui" style="top: 35%; left: 2%; width: 12%; height: 50%; border-radius: 10px;">
@@ -1105,8 +1105,8 @@
             </div>
         </div>
         <!-- Liquid Lounge UI -->
-        <button id="lounge-nav-left" class="lounge-nav nav-left hidden department-ui">&lt;</button>
-        <button id="lounge-nav-right" class="lounge-nav nav-right hidden department-ui">&gt;</button>
+        <button id="lounge-nav-left" class="nav-button nav-left hidden department-ui">&lt;</button>
+        <button id="lounge-nav-right" class="nav-button nav-right hidden department-ui">&gt;</button>
         <!-- QL SIM UI -->
         <div id="ql-sim-cockpit" class="hidden department-ui">
             <div id="ql-hud">
@@ -1674,11 +1674,11 @@
             function setupLoungeRoom(roomIndex) {
                  departmentView.style.backgroundImage = `url(${loungeBackgrounds[roomIndex]})`;
                  if(roomIndex === 0) {
-                     loungeNavLeft.classList.remove('hidden');
-                     loungeNavRight.classList.add('hidden');
-                 } else {
-                     loungeNavLeft.classList.add('hidden');
                      loungeNavRight.classList.remove('hidden');
+                     loungeNavLeft.classList.add('hidden');
+                 } else {
+                     loungeNavRight.classList.add('hidden');
+                     loungeNavLeft.classList.remove('hidden');
                  }
             }
             loungeNavLeft.addEventListener('click', () => { currentLoungeRoom = 0; setupLoungeRoom(0); });
@@ -1959,16 +1959,27 @@
                 if(userInteracted) return;
                 userInteracted = true;
 
+                // Prime all ambient audio to allow for future playback
+                allAmbientSounds.forEach(sound => {
+                    sound.load();
+                    sound.pause(); 
+                    sound.currentTime = 0;
+                });
+
+                const resumeAudioContext = () => {
+                    if (!isMusicInitialized) {
+                        setupAudio();
+                        setupSounds();
+                        shufflePlaylist();
+                        loadTrack(currentTrackIndex, false); 
+                        isMusicInitialized = true;
+                    }
+                };
+
                 if (audioContext.state === 'suspended') {
-                     audioContext.resume().then(() => {
-                         if (!isMusicInitialized) {
-                            setupAudio();
-                            setupSounds();
-                            shufflePlaylist();
-                            loadTrack(currentTrackIndex, false); 
-                            isMusicInitialized = true;
-                         }
-                     });
+                     audioContext.resume().then(resumeAudioContext);
+                } else {
+                    resumeAudioContext();
                 }
             }
 
@@ -1985,7 +1996,12 @@
             menuOptionSettings.addEventListener('mouseover', () => { if(currentMenuSelection !== 1) { currentMenuSelection = 1; updateMenuSelection();} });
             menuOptionNewGame.addEventListener('click', handleMenuClick);
             menuOptionSettings.addEventListener('click', handleMenuClick);
-            pressStart.addEventListener('click', () => { if(currentState === 'title') { transition('main-menu'); } });
+            pressStart.addEventListener('click', () => { 
+                handleUserInteraction();
+                if(currentState === 'title') { 
+                    transition('main-menu'); 
+                } 
+            });
             
             window.addEventListener('keydown', (e) => {
                 if (currentState === 'main-menu') {
