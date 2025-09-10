@@ -578,7 +578,7 @@
             height: 30px;
             background-color: #FF2D00;
             cursor: none;
-            z-index: 60;
+            z-index: 170; /* Increased z-index */
             animation: glitch-anim 1.5s infinite steps(8);
         }
 
@@ -1620,10 +1620,10 @@
                 Object.values(lobbyNavHotspots).forEach(el => el.classList.add('hidden'));
 
                 if (roomIndex === 0) {
-                    ['garage', 'datalab', 'rally', 'ql-sim'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
+                    ['garage', 'rally', 'ql-sim'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
                     lobbyNavHotspots['1-2'].classList.remove('hidden');
                 } else if (roomIndex === 1) {
-                    document.querySelector('.department-hotspot[data-target="race-select"]').classList.remove('hidden');
+                    ['datalab', 'race-select'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
                     lobbyNavHotspots['2-1'].classList.remove('hidden');
                     lobbyNavHotspots['2-3'].classList.remove('hidden');
                 } else if (roomIndex === 2) {
@@ -1961,9 +1961,8 @@
 
                 // Prime all ambient audio to allow for future playback
                 allAmbientSounds.forEach(sound => {
-                    sound.load();
-                    sound.pause(); 
-                    sound.currentTime = 0;
+                    sound.volume = 0.5; // Set a default volume for ambient sounds
+                    sound.play().then(() => sound.pause()).catch(e => {}); 
                 });
 
                 const resumeAudioContext = () => {
@@ -1971,8 +1970,10 @@
                         setupAudio();
                         setupSounds();
                         shufflePlaylist();
-                        loadTrack(currentTrackIndex, false); 
+                        loadTrack(currentTrackIndex, true); // Autoplay on first interaction
                         isMusicInitialized = true;
+                    } else if (!isPlaying){
+                        playTrack();
                     }
                 };
 
