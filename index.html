@@ -1484,6 +1484,20 @@
                 playSound('C2', '4n');
                 loadingScreen.classList.remove('hidden');
                 currentState = 'loading';
+
+                // Fade out menu theme if it's playing
+                if (racecarSfxAudio && !racecarSfxAudio.paused) {
+                    let fadeOutInterval = setInterval(() => {
+                        if (racecarSfxAudio.volume > 0.1) {
+                            racecarSfxAudio.volume -= 0.1;
+                        } else {
+                            clearInterval(fadeOutInterval);
+                            racecarSfxAudio.pause();
+                            racecarSfxAudio.currentTime = 0;
+                            racecarSfxAudio.volume = 1.0;
+                        }
+                    }, 100);
+                }
                 
                 allSounds.forEach(sound => {
                     if (sound.loop) { 
@@ -1494,7 +1508,7 @@
 
                 setTimeout(() => {
                     // Hide all major screens
-                    [titleScreen, hqLobby, departmentView, mainMenu, bootSeq].forEach(el => el.classList.add('hidden'));
+                    [titleScreen, hqLobby, departmentView, mainMenu, bootSeq, initialScreen].forEach(el => el.classList.add('hidden'));
                     
                     // Hide all department-specific UI
                     document.querySelectorAll('.department-ui').forEach(el => el.classList.add('hidden'));
@@ -2082,7 +2096,7 @@
                     initialScreen.classList.add('hidden');
                     bootSeq.classList.remove('hidden');
                     currentState = 'boot';
-                    bootupAudio.volume = 1.0; // Ensure it's audible
+                    bootupAudio.volume = 1.0; 
                     bootupAudio.play();
                     
                     setTimeout(() => {
