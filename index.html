@@ -996,7 +996,7 @@
     
     <!-- Initial Screen -->
     <div id="initial-screen" style="width:100vw; height: 100vh; display: flex; justify-content:center; align-items:center;">
-         <h1 id="initial-press-start" class="font-orbitron text-2xl" style="color: #EFEFEF; text-shadow: 0 0 10px #FF2D00; animation: blink 1s infinite;">PRESS START</h1>
+         <h1 id="initial-press-start" class="font-orbitron text-2xl" style="color: #EFEFEF; text-shadow: 0 0 10px #FF2D00; animation: blink 1s infinite;">ENTER</h1>
     </div>
 
 
@@ -1013,7 +1013,7 @@
     <!-- Main Title Screen -->
     <div id="title-screen" class="hidden">
         <img id="redlinin-logo" src="assets/redlinin_logo.png" alt="Redlinin Logo">
-        <!-- "Press Start" is now on the initial screen -->
+        <h1 id="press-start" class="hidden">PRESS START</h1>
     </div>
 
     <!-- Main Menu -->
@@ -1038,7 +1038,7 @@
         <div class="department-hotspot hotspot" style="top: 40%; left: 45%; width: 150px; height: 150px;" data-target="datalab">
             <div class="hotspot-label">THE DATALAB</div>
         </div>
-        <div class="department-hotspot hotspot locked" style="top: 45%; right: 5%; width: 15%; height: 50%;" data-target="lounge">
+        <div class="department-hotspot hotspot locked" style="top: 35%; right: 5%; width: 25%; height: 50%;" data-target="lounge">
              <div class="hotspot-label">LOCKED</div>
         </div>
         <div class="department-hotspot hotspot locked" style="top: 55%; left: 88%; width: 80px; height: 120px;" data-target="rally">
@@ -1232,6 +1232,7 @@
             const pubScreen = document.getElementById('publisher-screen');
             const titleScreen = document.getElementById('title-screen');
             const redlininLogo = document.getElementById('redlinin-logo');
+            const pressStart = document.getElementById('press-start');
             const loadingScreen = document.getElementById('loading-screen');
             const hqLobby = document.getElementById('hq-lobby');
             const departmentView = document.getElementById('department-view');
@@ -2084,12 +2085,18 @@
                         titleScreen.classList.remove('hidden');
                         currentState = 'title';
                         redlininLogo.style.animation = 'slam-in 0.5s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                        setTimeout(() => transition('main-menu'), 1500); // Transition to main menu automatically
+                        setTimeout(() => pressStart.classList.remove('hidden'), 500);
                     }, 6000);
                 });
             };
 
             initialPressStart.addEventListener('click', startBootSequence);
+
+            pressStart.addEventListener('click', () => {
+                if(currentState === 'title') {
+                    transition('main-menu');
+                }
+            });
 
             menuOptionNewGame.addEventListener('mouseover', () => { if(currentMenuSelection !== 0) { currentMenuSelection = 0; updateMenuSelection();} });
             menuOptionSettings.addEventListener('mouseover', () => { if(currentMenuSelection !== 1) { currentMenuSelection = 1; updateMenuSelection();} });
@@ -2099,6 +2106,8 @@
             window.addEventListener('keydown', (e) => {
                 if (currentState === 'initial' && e.key === 'Enter') {
                     startBootSequence();
+                } else if (currentState === 'title' && e.key === 'Enter') {
+                    transition('main-menu');
                 } else if (currentState === 'main-menu') {
                     if (e.key === 'ArrowUp' || e.key === 'w') {
                         currentMenuSelection = (currentMenuSelection - 1 + menuOptions.length) % menuOptions.length;
