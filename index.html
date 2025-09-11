@@ -1040,7 +1040,7 @@
     <!-- Main HQ Hub -->
     <div id="hq-lobby" class="hidden">
         <!-- Department Hotspots -->
-        <div class="department-hotspot hotspot" style="top: 55%; right: 5%; width: 10%; height: 25%;" data-target="garage">
+        <div class="department-hotspot hotspot" style="top: 40%; right: 5%; width: 10%; height: 40%; border-radius: 10px;" data-target="garage">
             <div class="hotspot-label">THE GARAGE</div>
         </div>
         <div class="department-hotspot hotspot" style="top: 45%; left: 15%; width: 200px; height: 200px; border-radius: 50%;" data-target="track-information">
@@ -1494,7 +1494,7 @@
                 });
 
                 // Specifically fade out the menu theme when going to the lobby
-                if ((targetState === 'hq-lobby') && racecarSfxAudio && !racecarSfxAudio.paused) {
+                if ((targetState === 'hq-lobby' || targetState.startsWith('department-')) && racecarSfxAudio && !racecarSfxAudio.paused) {
                     let fadeOutInterval = setInterval(() => {
                         if (racecarSfxAudio.volume > 0.1) {
                             racecarSfxAudio.volume -= 0.1;
@@ -2136,6 +2136,7 @@
                     initialScreen.classList.add('hidden');
                     bootSeq.classList.remove('hidden');
                     currentState = 'boot';
+                    bootupAudio.volume = 1.0; 
                     bootupAudio.play();
                     
                     setTimeout(() => {
@@ -2152,7 +2153,7 @@
                         setTimeout(() => {
                             racecarSfxAudio.play();
                             redlininLogo.style.animation = 'slam-in 0.5s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                        }, 400); // Retimed for better sync
+                        }, 500);
                         
                     }, 6000);
                 });
