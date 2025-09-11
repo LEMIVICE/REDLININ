@@ -1032,14 +1032,8 @@
     <!-- Main HQ Hub -->
     <div id="hq-lobby" class="hidden">
         <!-- Department Hotspots -->
-        <div class="department-hotspot hotspot" style="top: 55%; right: 5%; width: 25%; height: 25%; border-radius: 10px;" data-target="garage">
+        <div class="department-hotspot hotspot" style="top: 35%; right: 5%; width: 12%; height: 50%; border-radius: 10px;" data-target="garage">
             <div class="hotspot-label">THE GARAGE</div>
-        </div>
-        <div class="department-hotspot hotspot" style="top: 40%; left: 30%; width: 120px; height: 120px;" data-target="datalab">
-            <div class="hotspot-label">THE DATALAB</div>
-        </div>
-        <div class="department-hotspot hotspot locked" style="top: 25%; left: 60%; width: 100px; height: 250px;" data-target="lounge">
-             <div class="hotspot-label">LOCKED</div>
         </div>
          <div class="department-hotspot hotspot" style="top: 45%; left: 15%; width: 200px; height: 200px; border-radius: 50%;" data-target="track-information">
             <div class="hotspot-label">TRACK INFORMATION</div>
@@ -1537,12 +1531,12 @@
                         showHud = true;
                         departmentView.classList.remove('hidden');
                         currentState = 'department';
-                        const department = targetState.split('-')[1].replace('race_select','track-information');
+                        const department = targetState.split('-')[1].replace('track_information','track-information');
                         
                         playerData.visitedDepartments.add(department);
                         savePlayerData();
 
-                        const departmentName = `THE ${department.toUpperCase().replace('QLSIM', 'QL SIMULATOR').replace('SETTINGS', 'DRIVER DATA').replace('RACE-SELECT', 'TRACK INFORMATION')}`;
+                        const departmentName = `THE ${department.toUpperCase().replace('QLSIM', 'QL SIMULATOR').replace('SETTINGS', 'DRIVER DATA').replace('TRACK-INFORMATION', 'TRACK INFORMATION')}`;
                         departmentHeader.textContent = departmentName;
                         void departmentHeader.offsetWidth; // Trigger reflow to restart animation
                         departmentHeader.classList.add('header-animate');
