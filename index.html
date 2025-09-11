@@ -1494,7 +1494,7 @@
                 });
 
                 // Specifically fade out the menu theme when going to the lobby
-                if (targetState === 'hq-lobby' && racecarSfxAudio && !racecarSfxAudio.paused) {
+                if ((targetState === 'hq-lobby' || targetState.startsWith('department-')) && racecarSfxAudio && !racecarSfxAudio.paused) {
                     let fadeOutInterval = setInterval(() => {
                         if (racecarSfxAudio.volume > 0.1) {
                             racecarSfxAudio.volume -= 0.1;
@@ -1502,7 +1502,7 @@
                             clearInterval(fadeOutInterval);
                             racecarSfxAudio.pause();
                             racecarSfxAudio.currentTime = 0;
-                            // Don't reset volume to 1 here, let master volume handle it
+                            // Let master volume handle reset
                         }
                     }, 100);
                 }
@@ -1542,12 +1542,12 @@
                         showHud = true;
                         departmentView.classList.remove('hidden');
                         currentState = 'department';
-                        const department = targetState.split('-')[1].replace('race_select','race-select');
+                        const department = targetState.split('-')[1].replace('race_select','track-information');
                         
                         playerData.visitedDepartments.add(department);
                         savePlayerData();
 
-                        const departmentName = `THE ${department.toUpperCase().replace('QLSIM', 'QL SIMULATOR').replace('SETTINGS', 'DRIVER DATA').replace('RACE-SELECT', 'RACE SELECT')}`;
+                        const departmentName = `THE ${department.toUpperCase().replace('QLSIM', 'QL SIMULATOR').replace('SETTINGS', 'DRIVER DATA').replace('RACE-SELECT', 'TRACK INFORMATION')}`;
                         departmentHeader.textContent = departmentName;
                         void departmentHeader.offsetWidth; // Trigger reflow to restart animation
                         departmentHeader.classList.add('header-animate');
@@ -1568,7 +1568,7 @@
                             driverDataScreen.classList.remove('hidden');
                             backButton.textContent = "RETURN TO MAIN MENU";
                             updateDriverDataUI();
-                        } else if (department === 'race-select') {
+                        } else if (department === 'track-information') {
                             raceSelectScreen.classList.remove('hidden');
                             setupRaceSelect();
                         } else if(department !== 'boiler-room') {
@@ -1708,14 +1708,14 @@
                 Object.values(lobbyNavHotspots).forEach(el => el.classList.add('hidden'));
 
                 if (roomIndex === 0) {
-                    ['garage', 'rally'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
+                    ['garage', 'track-information'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
                     lobbyNavHotspots['1-2'].classList.remove('hidden');
                 } else if (roomIndex === 1) {
-                    ['datalab', 'race-select', 'ql-sim'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
+                    ['datalab'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
                     lobbyNavHotspots['2-1'].classList.remove('hidden');
                     lobbyNavHotspots['2-3'].classList.remove('hidden');
                 } else if (roomIndex === 2) {
-                    document.querySelector('.department-hotspot[data-target="lounge"]').classList.remove('hidden');
+                    ['lounge'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
                     lobbyNavHotspots['3-2'].classList.remove('hidden');
                 }
             }
@@ -1732,13 +1732,52 @@
                  departmentView.style.backgroundImage = `url(${datalabBackgrounds[roomIndex]})`;
                  datalabNavLeft.classList.remove('hidden');
                  datalabNavRight.classList.remove('hidden');
-                 if (roomIndex === 1) {
+                 
+                 // Reset sub-hotspots
+                 ['access-terminal-button', 'ql-sim-hotspot', 'rally-hotspot'].forEach(id => {
+                     const el = document.getElementById(id);
+                     if (el) el.classList.add('hidden');
+                 });
+
+                 if (roomIndex === 0) { // QL Sim
+                     const qlSimHotspot = document.getElementById('ql-sim-hotspot') || createDatalabHotspot('ql-sim', 'QL SIMULATOR', '30%', '20%', '150px', '150px');
+                     qlSimHotspot.classList.remove('hidden');
+                 } else if (roomIndex === 1) { // Terminal
                      if (!playerData.puzzlesFound['puzzle-2']) puzzles['puzzle-2'].classList.remove('hidden');
                      accessTerminalButton.classList.remove('hidden');
-                 } else {
-                     puzzles['puzzle-2'].classList.add('hidden');
-                     accessTerminalButton.classList.add('hidden');
+                 } else if (roomIndex === 2) { // Rally
+                     const rallyHotspot = document.getElementById('rally-hotspot') || createDatalabHotspot('rally', 'RALLY DIVISION', '60%', '60%', '120px', '120px');
+                     rallyHotspot.classList.remove('hidden');
                  }
+            }
+
+            function createDatalabHotspot(target, label, top, left, width, height) {
+                const hotspot = document.createElement('div');
+                hotspot.id = `${target}-hotspot`;
+                hotspot.className = 'hotspot locked department-ui';
+                hotspot.style.top = top;
+                hotspot.style.left = left;
+                hotspot.style.width = width;
+                hotspot.style.height = height;
+                hotspot.dataset.target = target;
+
+                const hotspotLabel = document.createElement('div');
+                hotspotLabel.className = 'hotspot-label';
+                hotspotLabel.textContent = "LOCKED";
+                hotspot.appendChild(hotspotLabel);
+                
+                departmentView.appendChild(hotspot);
+                
+                hotspot.addEventListener('mouseover', () => playSound('F5'));
+                hotspot.addEventListener('click', () => {
+                    if (hotspot.classList.contains('locked')) {
+                        playSound('C3', '4n');
+                        showNotification("DEPARTMENT LOCKED // ACCESS DENIED");
+                        return;
+                    }
+                    transition(`department-${target}`);
+                });
+                return hotspot;
             }
             
             datalabNavLeft.addEventListener('click', () => { currentDatalabRoom = (currentDatalabRoom - 1 + datalabBackgrounds.length) % datalabBackgrounds.length; setupDatalabRoom(currentDatalabRoom); });
