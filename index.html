@@ -1039,13 +1039,7 @@
 
     <!-- Main HQ Hub -->
     <div id="hq-lobby" class="hidden">
-        <!-- Department Hotspots -->
-        <div class="department-hotspot hotspot" style="top: 40%; right: 5%; width: 10%; height: 40%; border-radius: 10px;" data-target="garage">
-            <div class="hotspot-label">THE GARAGE</div>
-        </div>
-        <div class="department-hotspot hotspot" style="top: 45%; left: 15%; width: 200px; height: 200px; border-radius: 50%;" data-target="track-information">
-            <div class="hotspot-label">TRACK INFORMATION</div>
-        </div>
+        <!-- Department Hotspots are added dynamically by JS -->
         
         <!-- Boiler Room Puzzle Trigger -->
         <div id="boiler-room-hotspot" class="hotspot hidden" data-target="boiler-room">
@@ -1114,14 +1108,11 @@
         <!-- Puzzle 2 Placeholder -->
         <div id="puzzle-2" class="glitch-artifact hidden department-ui" style="top: 80%; left: 10%;"></div>
         <!-- DATALAB UI -->
-        <div class="department-hotspot hotspot" style="top: 40%; left: 45%; width: 150px; height: 150px;" data-target="datalab">
-            <div class="hotspot-label">THE DATALAB</div>
-        </div>
         <button id="datalab-nav-left" class="nav-button nav-left hidden department-ui">&lt;</button>
         <button id="datalab-nav-right" class="nav-button nav-right hidden department-ui">&gt;</button>
         <button id="access-terminal-button" class="hidden department-ui">ACCESS TERMINAL</button>
-        <div id="ql-sim-hotspot" class="hotspot locked department-ui" style="top: 30%; left: 20%; width: 150px; height: 150px;"><div class="hotspot-label">QL SIMULATOR</div></div>
-        <div id="rally-hotspot" class="hotspot locked department-ui" style="top: 60%; left: 60%; width: 120px; height: 120px;"><div class="hotspot-label">RALLY DIVISION</div></div>
+        <div id="ql-sim-hotspot" class="hotspot locked department-ui" style="top: 30%; left: 20%; width: 150px; height: 150px;" data-target="ql-sim"><div class="hotspot-label">LOCKED</div></div>
+        <div id="rally-hotspot" class="hotspot locked department-ui" style="top: 60%; left: 60%; width: 120px; height: 120px;" data-target="rally"><div class="hotspot-label">LOCKED</div></div>
         <!-- Garage UI -->
         <div id="garage-nav-door" class="hotspot hidden department-ui" style="top: 35%; left: 2%; width: 12%; height: 50%; border-radius: 10px;">
              <div class="hotspot-label">SECONDARY BAY</div>
@@ -1293,8 +1284,9 @@
             const garageBackgrounds = ['assets/garage_bg1.png', 'assets/garage_bg2.png'];
             const loungeBackgrounds = ['assets/liquid_lounge_bg.png', 'assets/liquid_lounge_bg2.png'];
             const lockedDepartments = ['lounge', 'ql-sim', 'rally'];
+            let allDepartmentHotspots = {}; // Will be populated after creation
 
-            const departmentHotspots = document.querySelectorAll('.department-hotspot');
+
             const lobbyNavHotspots = {
                 '1-2': document.getElementById('lobby-nav-1-to-2'), '2-1': document.getElementById('lobby-nav-2-to-1'),
                 '2-3': document.getElementById('lobby-nav-2-to-3'), '3-2': document.getElementById('lobby-nav-3-to-2'),
@@ -1494,7 +1486,7 @@
                 });
 
                 // Specifically fade out the menu theme when going to the lobby
-                if ((targetState === 'hq-lobby' || targetState.startsWith('department-')) && racecarSfxAudio && !racecarSfxAudio.paused) {
+                if ((targetState === 'hq-lobby') && racecarSfxAudio && !racecarSfxAudio.paused) {
                     let fadeOutInterval = setInterval(() => {
                         if (racecarSfxAudio.volume > 0.1) {
                             racecarSfxAudio.volume -= 0.1;
@@ -1704,7 +1696,7 @@
             // Department Logic (Lobby, Datalab, Garage, QL Sim, Race Select)
             function setupLobbyRoom(roomIndex) {
                 hqLobby.style.backgroundImage = `url(${lobbyBackgrounds[roomIndex]})`;
-                departmentHotspots.forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.department-hotspot').forEach(el => el.classList.add('hidden'));
                 Object.values(lobbyNavHotspots).forEach(el => el.classList.add('hidden'));
 
                 if (roomIndex === 0) {
@@ -1740,46 +1732,15 @@
                  });
 
                  if (roomIndex === 0) { // QL Sim
-                     const qlSimHotspot = document.getElementById('ql-sim-hotspot') || createDatalabHotspot('ql-sim', 'QL SIMULATOR', '30%', '20%', '150px', '150px');
-                     qlSimHotspot.classList.remove('hidden');
+                     document.getElementById('ql-sim-hotspot').classList.remove('hidden');
                  } else if (roomIndex === 1) { // Terminal
                      if (!playerData.puzzlesFound['puzzle-2']) puzzles['puzzle-2'].classList.remove('hidden');
                      accessTerminalButton.classList.remove('hidden');
                  } else if (roomIndex === 2) { // Rally
-                     const rallyHotspot = document.getElementById('rally-hotspot') || createDatalabHotspot('rally', 'RALLY DIVISION', '60%', '60%', '120px', '120px');
-                     rallyHotspot.classList.remove('hidden');
+                     document.getElementById('rally-hotspot').classList.remove('hidden');
                  }
             }
 
-            function createDatalabHotspot(target, label, top, left, width, height) {
-                const hotspot = document.createElement('div');
-                hotspot.id = `${target}-hotspot`;
-                hotspot.className = 'hotspot locked department-ui';
-                hotspot.style.top = top;
-                hotspot.style.left = left;
-                hotspot.style.width = width;
-                hotspot.style.height = height;
-                hotspot.dataset.target = target;
-
-                const hotspotLabel = document.createElement('div');
-                hotspotLabel.className = 'hotspot-label';
-                hotspotLabel.textContent = "LOCKED";
-                hotspot.appendChild(hotspotLabel);
-                
-                departmentView.appendChild(hotspot);
-                
-                hotspot.addEventListener('mouseover', () => playSound('F5'));
-                hotspot.addEventListener('click', () => {
-                    if (hotspot.classList.contains('locked')) {
-                        playSound('C3', '4n');
-                        showNotification("DEPARTMENT LOCKED // ACCESS DENIED");
-                        return;
-                    }
-                    transition(`department-${target}`);
-                });
-                return hotspot;
-            }
-            
             datalabNavLeft.addEventListener('click', () => { currentDatalabRoom = (currentDatalabRoom - 1 + datalabBackgrounds.length) % datalabBackgrounds.length; setupDatalabRoom(currentDatalabRoom); });
             datalabNavRight.addEventListener('click', () => { currentDatalabRoom = (currentDatalabRoom + 1) % datalabBackgrounds.length; setupDatalabRoom(currentDatalabRoom); });
 
