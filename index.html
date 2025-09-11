@@ -1039,7 +1039,7 @@
 
     <!-- Main HQ Hub -->
     <div id="hq-lobby" class="hidden">
-        <!-- Department Hotspots are added dynamically by JS -->
+        <!-- Hotspots are added dynamically by JS -->
         
         <!-- Boiler Room Puzzle Trigger -->
         <div id="boiler-room-hotspot" class="hotspot hidden" data-target="boiler-room">
@@ -1284,7 +1284,7 @@
             const garageBackgrounds = ['assets/garage_bg1.png', 'assets/garage_bg2.png'];
             const loungeBackgrounds = ['assets/liquid_lounge_bg.png', 'assets/liquid_lounge_bg2.png'];
             const lockedDepartments = ['lounge', 'ql-sim', 'rally'];
-            let allDepartmentHotspots = {}; // Will be populated after creation
+            let createdHotspots = [];
 
 
             const lobbyNavHotspots = {
@@ -1696,20 +1696,57 @@
             // Department Logic (Lobby, Datalab, Garage, QL Sim, Race Select)
             function setupLobbyRoom(roomIndex) {
                 hqLobby.style.backgroundImage = `url(${lobbyBackgrounds[roomIndex]})`;
-                document.querySelectorAll('.department-hotspot').forEach(el => el.classList.add('hidden'));
+                createdHotspots.forEach(el => el.remove());
+                createdHotspots = [];
                 Object.values(lobbyNavHotspots).forEach(el => el.classList.add('hidden'));
+                
+                const hotspotData = {
+                    'garage': { room: 0, label: 'THE GARAGE', style: 'top: 25%; right: 9%; width: 10%; height: 50%; border-radius: 10px;', locked: false },
+                    'track-information': { room: 0, label: 'TRACK INFORMATION', style: 'top: 45%; left: 15%; width: 200px; height: 200px; border-radius: 50%;', locked: false },
+                    'datalab': { room: 1, label: 'THE DATALAB', style: 'top: 40%; left: 45%; width: 150px; height: 150px;', locked: false },
+                    'lounge': { room: 2, label: 'THE LIQUID LOUNGE', style: 'top: 40%; right: 5%; width: 20%; height: 50%;', locked: true },
+                };
 
-                if (roomIndex === 0) {
-                    ['garage', 'track-information'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
-                    lobbyNavHotspots['1-2'].classList.remove('hidden');
-                } else if (roomIndex === 1) {
-                    ['datalab'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
+                for (const target in hotspotData) {
+                    if (hotspotData[target].room === roomIndex) {
+                       createHotspot(target, hotspotData[target]);
+                    }
+                }
+
+                if (roomIndex === 0) lobbyNavHotspots['1-2'].classList.remove('hidden');
+                if (roomIndex === 1) {
                     lobbyNavHotspots['2-1'].classList.remove('hidden');
                     lobbyNavHotspots['2-3'].classList.remove('hidden');
-                } else if (roomIndex === 2) {
-                    ['lounge'].forEach(id => document.querySelector(`.department-hotspot[data-target="${id}"]`).classList.remove('hidden'));
-                    lobbyNavHotspots['3-2'].classList.remove('hidden');
                 }
+                if (roomIndex === 2) lobbyNavHotspots['3-2'].classList.remove('hidden');
+            }
+
+            function createHotspot(target, data) {
+                const hotspot = document.createElement('div');
+                hotspot.className = `department-hotspot hotspot ${data.locked ? 'locked' : ''}`;
+                hotspot.style.cssText = data.style;
+                hotspot.dataset.target = target;
+
+                const label = document.createElement('div');
+                label.className = 'hotspot-label';
+                label.textContent = data.locked ? 'LOCKED' : data.label;
+                hotspot.appendChild(label);
+                
+                hqLobby.appendChild(hotspot);
+                createdHotspots.push(hotspot);
+                
+                hotspot.addEventListener('mouseover', () => playSound('F5'));
+                hotspot.addEventListener('click', () => {
+                    if (hotspot.classList.contains('locked')) {
+                        playSound('C3', '4n');
+                        showNotification("DEPARTMENT LOCKED // ACCESS DENIED");
+                        return;
+                    }
+                    if (target) {
+                        transition(`department-${target}`);
+                    }
+                });
+                return hotspot;
             }
             
             Object.keys(lobbyNavHotspots).forEach(key => {
@@ -1741,6 +1778,35 @@
                  }
             }
 
+            function createDatalabHotspot(target, label, top, left, width, height) {
+                const hotspot = document.createElement('div');
+                hotspot.id = `${target}-hotspot`;
+                hotspot.className = 'hotspot locked department-ui';
+                hotspot.style.top = top;
+                hotspot.style.left = left;
+                hotspot.style.width = width;
+                hotspot.style.height = height;
+                hotspot.dataset.target = target;
+
+                const hotspotLabel = document.createElement('div');
+                hotspotLabel.className = 'hotspot-label';
+                hotspotLabel.textContent = "LOCKED";
+                hotspot.appendChild(hotspotLabel);
+                
+                departmentView.appendChild(hotspot);
+                
+                hotspot.addEventListener('mouseover', () => playSound('F5'));
+                hotspot.addEventListener('click', () => {
+                    if (hotspot.classList.contains('locked')) {
+                        playSound('C3', '4n');
+                        showNotification("DEPARTMENT LOCKED // ACCESS DENIED");
+                        return;
+                    }
+                    transition(`department-${target}`);
+                });
+                return hotspot;
+            }
+            
             datalabNavLeft.addEventListener('click', () => { currentDatalabRoom = (currentDatalabRoom - 1 + datalabBackgrounds.length) % datalabBackgrounds.length; setupDatalabRoom(currentDatalabRoom); });
             datalabNavRight.addEventListener('click', () => { currentDatalabRoom = (currentDatalabRoom + 1) % datalabBackgrounds.length; setupDatalabRoom(currentDatalabRoom); });
 
