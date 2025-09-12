@@ -1701,7 +1701,7 @@
                 Object.values(lobbyNavHotspots).forEach(el => el.classList.add('hidden'));
                 
                 const hotspotData = {
-                    'garage': { room: 0, label: 'THE GARAGE', style: 'top: 25%; right: 9%; width: 10%; height: 50%; border-radius: 10px;', locked: false },
+                    'garage': { room: 0, label: 'THE GARAGE', style: 'top: 25%; right: 7%; width: 10%; height: 50%; border-radius: 10px;', locked: false },
                     'track-information': { room: 0, label: 'TRACK INFORMATION', style: 'top: 45%; left: 15%; width: 200px; height: 200px; border-radius: 50%;', locked: false },
                     'datalab': { room: 1, label: 'THE DATALAB', style: 'top: 50%; left: 40%; width: 150px; height: 150px;', locked: false },
                     'lounge': { room: 2, label: 'THE LIQUID LOUNGE', style: 'top: 25%; right: 5%; width: 25%; height: 50%; border-radius: 10px;', locked: true },
@@ -1737,6 +1737,7 @@
                 
                 hotspot.addEventListener('mouseover', () => playSound('F5'));
                 hotspot.addEventListener('click', () => {
+                    const target = hotspot.dataset.target;
                     if (hotspot.classList.contains('locked')) {
                         playSound('C3', '4n');
                         showNotification("DEPARTMENT LOCKED // ACCESS DENIED");
