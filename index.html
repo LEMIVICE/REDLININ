@@ -7,6 +7,14 @@
     <title>REDLININ' RACING HQ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
@@ -30,6 +38,15 @@
 
         .hidden {
             display: none !important;
+        }
+        
+        #garage-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
         }
         
         /* CRT Scanline Overlay */
@@ -331,7 +348,6 @@
             height: 100vh;
             background-size: cover;
             background-position: center;
-            padding-top: 50px; /* Account for HUD */
         }
         
         #department-header {
@@ -347,6 +363,7 @@
              border-top: 2px solid #FF2D00;
              border-bottom: 2px solid #FF2D00;
              opacity: 0; /* for animation */
+             z-index: 10;
         }
         
         .header-animate {
@@ -379,6 +396,7 @@
             border-radius: 5px;
             cursor: none;
             transition: all 0.3s ease;
+            z-index: 10;
         }
         
         #back-button {
@@ -1214,7 +1232,10 @@
     <audio id="datalab-audio" loop><source src="assets/sfx/datalab_ambience.wav" type="audio/wav"></audio>
     <audio id="lounge-audio" loop><source src="assets/sfx/lounge_ambience.wav" type="audio/wav"></audio>
 
-    <script>
+    <script type="module">
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
         document.addEventListener('DOMContentLoaded', () => {
             // --- DOM Element Cache ---
             const initialScreen = document.getElementById('initial-screen');
@@ -1345,6 +1366,10 @@
                 'garage': garageAudio, 'datalab': datalabAudio, 'lounge': loungeAudio, 'boiler-room': boilerRoomAudio
             };
             
+            // --- Three.js Garage Scene ---
+            let garageScene, garageCamera, garageRenderer, garageModel, garageControls;
+            let garageAnimationId;
+
             // --- Data ---
              const headlines = [
                 // Fictional Lemi Vice
@@ -1812,19 +1837,88 @@
             datalabNavRight.addEventListener('click', () => { currentDatalabRoom = (currentDatalabRoom + 1) % datalabBackgrounds.length; setupDatalabRoom(currentDatalabRoom); });
 
             function setupGarageRoom(roomIndex) {
-                 departmentView.style.backgroundImage = `url(${garageBackgrounds[roomIndex]})`;
-                 if(roomIndex === 0) {
-                     garageNavDoor.classList.remove('hidden');
-                     garageSchematics.classList.remove('hidden');
-                     returnToBayButton.classList.add('hidden');
-                 } else {
-                     garageNavDoor.classList.add('hidden');
+                if(roomIndex === 0) {
+                    // 3D Scene
+                    departmentView.style.backgroundImage = 'none';
+                    if (!garageRenderer) initGarageScene();
+                    garageNavDoor.classList.remove('hidden');
+                    garageSchematics.classList.remove('hidden');
+                    returnToBayButton.classList.add('hidden');
+                    document.getElementById('garage-canvas').classList.remove('hidden');
+                    animateGarage();
+                } else {
+                    // 2D Scene
+                    if(garageAnimationId) cancelAnimationFrame(garageAnimationId);
+                    document.getElementById('garage-canvas').classList.add('hidden');
+                    departmentView.style.backgroundImage = `url(${garageBackgrounds[roomIndex]})`;
+                    garageNavDoor.classList.add('hidden');
                      garageSchematics.classList.add('hidden');
                      returnToBayButton.classList.remove('hidden');
                  }
             }
             garageNavDoor.addEventListener('click', () => { currentGarageRoom = 1; setupGarageRoom(1); });
             returnToBayButton.addEventListener('click', () => { currentGarageRoom = 0; setupGarageRoom(0); });
+            
+            function initGarageScene() {
+                garageScene = new THREE.Scene();
+                garageScene.background = new THREE.Color(0x101010);
+
+                garageCamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+                garageCamera.position.set(0, 1.5, 5);
+
+                garageRenderer = new THREE.WebGLRenderer({ antialias: true });
+                garageRenderer.setSize(window.innerWidth, window.innerHeight);
+                garageRenderer.setPixelRatio(window.devicePixelRatio);
+                
+                const canvas = garageRenderer.domElement;
+                canvas.id = 'garage-canvas';
+                departmentView.prepend(canvas);
+
+                garageControls = new OrbitControls(garageCamera, garageRenderer.domElement);
+                garageControls.enableDamping = true;
+                garageControls.dampingFactor = 0.05;
+                garageControls.screenSpacePanning = false;
+                garageControls.minDistance = 3;
+                garageControls.maxDistance = 8;
+                garageControls.target.set(0, 1, 0);
+
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                garageScene.add(ambientLight);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+                directionalLight.position.set(5, 5, 5);
+                garageScene.add(directionalLight);
+                
+                const loader = new GLTFLoader();
+                loader.load('assets/2021_BMW_M4_GT3.glb', (gltf) => {
+                    garageModel = gltf.scene;
+                    garageModel.scale.set(1.5, 1.5, 1.5);
+                    garageModel.position.y = 0.5;
+                    garageScene.add(garageModel);
+                }, undefined, (error) => {
+                    console.error('An error happened while loading the 3D model:', error);
+                });
+                
+                 window.addEventListener('resize', onWindowResize, false);
+            }
+            
+            function onWindowResize() {
+                if(garageCamera && garageRenderer) {
+                    garageCamera.aspect = window.innerWidth / window.innerHeight;
+                    garageCamera.updateProjectionMatrix();
+                    garageRenderer.setSize(window.innerWidth, window.innerHeight);
+                }
+            }
+
+            function animateGarage() {
+                garageAnimationId = requestAnimationFrame(animateGarage);
+                if (garageModel) {
+                    garageModel.rotation.y += 0.005;
+                }
+                garageControls.update();
+                garageRenderer.render(garageScene, garageCamera);
+            }
+
 
             function setupLoungeRoom(roomIndex) {
                  departmentView.style.backgroundImage = `url(${loungeBackgrounds[roomIndex]})`;
