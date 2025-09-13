@@ -183,7 +183,7 @@
             opacity: 0;
         }
         
-        #press-start {
+        #press-start, #initial-press-start {
             position: absolute;
             bottom: 20%;
             left: 50%;
@@ -193,6 +193,7 @@
             color: #EFEFEF;
             text-shadow: 0 0 10px #FF2D00;
             animation: blink 1s infinite;
+            cursor: pointer;
         }
 
         @keyframes slam-in {
@@ -262,7 +263,6 @@
             border: 2px solid rgba(0,0,0,0);
             transition: all 0.3s ease;
             box-shadow: 0 0 0px var(--accent-color);
-            cursor: none;
         }
 
         .hotspot:not(.locked):hover {
@@ -331,7 +331,6 @@
             height: 100vh;
             background-size: cover;
             background-position: center;
-            padding-top: 50px; /* Account for HUD */
         }
         
         #department-header {
@@ -347,6 +346,7 @@
              border-top: 2px solid #FF2D00;
              border-bottom: 2px solid #FF2D00;
              opacity: 0; /* for animation */
+             z-index: 10;
         }
         
         .header-animate {
@@ -377,8 +377,8 @@
             background-color: #000;
             padding: 10px 20px;
             border-radius: 5px;
-            cursor: none;
             transition: all 0.3s ease;
+            z-index: 10;
         }
         
         #back-button {
@@ -408,6 +408,7 @@
             pointer-events: none;
             box-shadow: 0 0 5px var(--accent-color);
             transition: transform 0.1s ease-out;
+            visibility: hidden;
         }
         
         #cursor-ring {
@@ -419,10 +420,12 @@
             z-index: 9999;
             pointer-events: none;
             transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+            visibility: hidden;
         }
         
-        body:hover #cursor-ring {
-            opacity: 1;
+        body.hide-cursor #cursor-ring,
+        body.hide-cursor #cursor-dot {
+            visibility: visible;
         }
         
         /* Main Menu */
@@ -442,7 +445,6 @@
             font-size: 2.5rem;
             color: #EFEFEF;
             text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
-            cursor: none;
             transition: all 0.3s ease;
             padding: 10px 20px;
             border: 2px solid transparent;
@@ -574,7 +576,6 @@
             background: #000;
             border: 1px solid var(--accent-color);
             outline: none;
-            cursor: none;
         }
 
         input[type="range"]::-webkit-slider-thumb {
@@ -583,7 +584,6 @@
             width: 15px;
             height: 15px;
             background: #FF2D00;
-            cursor: none;
             border: 1px solid #EFEFEF;
         }
 
@@ -598,7 +598,6 @@
             border: none;
             color: #EFEFEF;
             font-size: 1.2rem;
-            cursor: none;
             transition: color 0.2s ease;
         }
 
@@ -612,7 +611,6 @@
             width: 30px;
             height: 30px;
             background-color: #FF2D00;
-            cursor: none;
             z-index: 1000;
             animation: glitch-anim 1.5s infinite steps(8);
         }
@@ -727,7 +725,6 @@
             background: none;
             border: none;
             font-size: 2rem;
-            cursor: none;
         }
         
         /* DATALAB & LOUNGE Navigation */
@@ -740,7 +737,6 @@
             color: var(--accent-color);
             padding: 20px 10px;
             font-size: 2rem;
-            cursor: none;
             z-index: 160;
             transition: all 0.2s ease;
         }
@@ -763,7 +759,6 @@
              padding: 10px 20px;
              border: 2px solid #FF2D00;
              border-radius: 5px;
-             cursor: none;
              transition: all 0.3s ease;
         }
         #access-terminal-button:hover {
@@ -868,7 +863,6 @@
             width: 30px;
             height: 30px;
             border: 2px solid #EFEFEF;
-            cursor: none;
         }
         .swatch.selected {
              box-shadow: 0 0 10px #FFF;
@@ -905,7 +899,6 @@
             padding: 15px 30px;
             margin: 10px;
             border: 2px solid var(--accent-color);
-            cursor: none;
             transition: all 0.2s ease;
         }
         .album-choice:hover {
@@ -938,7 +931,6 @@
         .track-item {
             padding: 10px;
             font-family: 'Orbitron', sans-serif;
-            cursor: none;
             border-bottom: 1px solid #333;
         }
 
@@ -983,7 +975,6 @@
 
     <div id="transition-overlay"></div>
 
-    <!-- HUD Bar -->
     <div id="hud-bar" class="hidden">
         <div id="hud-left">
             <img id="hud-logo" src="assets/redlinin_logo.png" alt="Redlinin Logo">
@@ -998,17 +989,14 @@
     </div>
 
 
-    <!-- Custom Cursor -->
     <div id="cursor-dot"></div>
     <div id="cursor-ring"></div>
     
-    <!-- Initial Screen -->
     <div id="initial-screen" style="width:100vw; height: 100vh; display: flex; justify-content:center; align-items:center;">
          <h1 id="initial-press-start" class="font-orbitron text-2xl" style="color: #EFEFEF; text-shadow: 0 0 10px #FF2D00; animation: blink 1s infinite;">ENTER</h1>
     </div>
 
 
-    <!-- Boot Sequence -->
     <div id="boot-sequence" class="hidden">
         <div id="lv-emblem-screen" class="boot-screen">
              <img src="assets/lemi_vice_logo.png" alt="Lemi Vice Emblem">
@@ -1018,35 +1006,27 @@
         </div>
     </div>
 
-    <!-- Main Title Screen -->
     <div id="title-screen" class="hidden">
         <img id="redlinin-logo" src="assets/redlinin_logo.png" alt="Redlinin Logo">
         <h1 id="press-start" class="hidden">PRESS START</h1>
     </div>
 
-    <!-- Main Menu -->
     <div id="main-menu" class="hidden" style="width: 100vw; height: 100vh;">
          <div id="menu-option-new-game" class="menu-option selected">NEW GAME</div>
          <div id="menu-option-settings" class="menu-option">DRIVER DATA</div>
     </div>
 
 
-    <!-- Loading Screen -->
     <div id="loading-screen" class="hidden">
         <div id="loading-icon"></div>
         <p id="loading-text">NOW LOADING</p>
     </div>
 
-    <!-- Main HQ Hub -->
     <div id="hq-lobby" class="hidden">
-        <!-- Hotspots are added dynamically by JS -->
-        
-        <!-- Boiler Room Puzzle Trigger -->
         <div id="boiler-room-hotspot" class="hotspot hidden" data-target="boiler-room">
              <div class="hotspot-label">ACCESS GRATE</div>
         </div>
 
-        <!-- Lobby Navigation Hotspots -->
         <div id="lobby-nav-1-to-2" class="lobby-nav hotspot" style="top: 40%; left: 47%; width: 120px; height: 120px;">
             <div class="hotspot-label" style="top: -30px; left: 50%; transform: translateX(-50%);">NEXT AREA</div>
         </div>
@@ -1060,12 +1040,10 @@
             <div class="hotspot-label">LOWER LEVEL</div>
         </div>
         
-        <!-- News Ticker -->
         <div id="news-ticker-container">
             <div id="news-ticker"><p></p></div>
         </div>
 
-        <!-- MP3 Player -->
         <div id="mp3-player">
             <div id="mp3-header">
                 <img src="assets/redlinin_logo.png" alt="Redlinin">
@@ -1095,30 +1073,24 @@
                     <button id="next-btn">⏭</button>
                 </div>
             </div>
-             <!-- Puzzle 3 -->
-            <div id="puzzle-3" class="glitch-artifact" style="top: 5px; right: 5px; width:15px; height:15px;"></div>
+             <div id="puzzle-3" class="glitch-artifact" style="top: 5px; right: 5px; width:15px; height:15px;"></div>
         </div>
 
     </div>
 
-    <!-- Department View -->
     <div id="department-view" class="hidden">
         <h2 id="department-header">DEPARTMENT</h2>
         <button id="back-button" class="department-button">RETURN TO HQ</button>
-        <!-- Puzzle 2 Placeholder -->
         <div id="puzzle-2" class="glitch-artifact hidden department-ui" style="top: 80%; left: 10%;"></div>
-        <!-- DATALAB UI -->
         <button id="datalab-nav-left" class="nav-button nav-left hidden department-ui">&lt;</button>
         <button id="datalab-nav-right" class="nav-button nav-right hidden department-ui">&gt;</button>
         <button id="access-terminal-button" class="hidden department-ui">ACCESS TERMINAL</button>
         <div id="ql-sim-hotspot" class="hotspot locked department-ui" style="top: 30%; left: 20%; width: 150px; height: 150px;" data-target="ql-sim"><div class="hotspot-label">LOCKED</div></div>
         <div id="rally-hotspot" class="hotspot locked department-ui" style="top: 60%; left: 60%; width: 120px; height: 120px;" data-target="rally"><div class="hotspot-label">LOCKED</div></div>
-        <!-- Garage UI -->
         <div id="garage-nav-door" class="hotspot hidden department-ui" style="top: 35%; left: 2%; width: 12%; height: 50%; border-radius: 10px;">
              <div class="hotspot-label">SECONDARY BAY</div>
         </div>
         <button id="return-to-bay-button" class="department-button return-button hidden department-ui">RETURN TO MAIN BAY</button>
-        <!-- Garage Schematics -->
         <div id="garage-schematics" class="hidden department-ui">
             <div class="schematic-hotspot hotspot" style="top: 50%; left: 50%; width: 100px; height: 50px;">
                  <div class="hotspot-label">FUSION ENGINE CORE</div>
@@ -1130,23 +1102,18 @@
                  <div class="hotspot-label">DOWNFORCE SPOILER</div>
             </div>
         </div>
-        <!-- Liquid Lounge UI -->
         <button id="lounge-nav-left" class="nav-button nav-left hidden department-ui">&lt;</button>
         <button id="lounge-nav-right" class="nav-button nav-right hidden department-ui">&gt;</button>
-        <!-- QL SIM UI -->
         <div id="ql-sim-cockpit" class="hidden department-ui">
             <div id="ql-hud">
-                <!-- QL Player will be injected here by JS -->
-            </div>
+                </div>
         </div>
-        <!-- Settings/Driver Data UI -->
         <div id="driver-data-screen" class="hidden department-ui">
              <h2>DRIVER DATA // SYSTEM SETTINGS</h2>
              <div class="data-block">
                  <h3>SESSION DATA</h3>
                  <div class="data-row"><span>DEPARTMENTS VISITED:</span><span id="data-visited">0 / 6</span></div>
                  <div class="data-row"><span>SECRETS UNLOCKED:</span><span id="data-secrets">0 / 3</span></div>
-                 <!-- Puzzle 1 -->
                  <div id="puzzle-1" class="glitch-artifact" style="top: 15%; right: 5%;"></div>
              </div>
              <div class="data-block">
@@ -1169,7 +1136,6 @@
                  </div>
              </div>
         </div>
-        <!-- Race Select UI -->
         <div id="race-select-screen" class="hidden department-ui">
              <div id="album-select-view">
                 <h2>SELECT ALBUM</h2>
@@ -1190,7 +1156,6 @@
         </div>
     </div>
 
-    <!-- Hacking Console -->
     <div id="hacking-console-container" class="hidden">
         <div id="console-window">
              <div id="console-output"></div>
@@ -1203,10 +1168,8 @@
     </div>
 
 
-    <!-- Notification Area -->
     <div id="notification" class="hidden"></div>
     
-    <!-- Ambient Audio -->
     <audio id="bootup-audio"><source src="assets/sfx/bootup_chime.mp3" type="audio/mpeg"></audio>
     <audio id="racecar-sfx-audio"><source src="assets/music/0-100_DreamCast_Version.mp3" type="audio/mpeg"></audio>
     <audio id="boiler-room-audio" loop><source src="assets/sfx/boiler_room_ambience.wav" type="audio/wav"></audio>
@@ -1215,7 +1178,8 @@
     <audio id="lounge-audio" loop><source src="assets/sfx/lounge_ambience.wav" type="audio/wav"></audio>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        // --- Main Site Script ---
+        const main = () => {
             // --- DOM Element Cache ---
             const initialScreen = document.getElementById('initial-screen');
             const initialPressStart = document.getElementById('initial-press-start');
@@ -1246,15 +1210,18 @@
             const cursorDot = document.getElementById('cursor-dot');
             const cursorRing = document.getElementById('cursor-ring');
 
-            window.addEventListener('mousemove', e => {
-                cursorDot.style.left = e.clientX + 'px';
-                cursorDot.style.top = e.clientY + 'px';
-                cursorRing.style.left = (e.clientX - 13) + 'px';
-                cursorRing.style.top = (e.clientY - 13) + 'px';
-            });
-            
-            document.body.addEventListener('mousedown', () => cursorDot.style.transform = 'scale(2)');
-            document.body.addEventListener('mouseup', () => cursorDot.style.transform = 'scale(1)');
+            const setupCursor = () => {
+                window.addEventListener('mousemove', e => {
+                    cursorDot.style.left = e.clientX + 'px';
+                    cursorDot.style.top = e.clientY + 'px';
+                    cursorRing.style.left = (e.clientX - 13) + 'px';
+                    cursorRing.style.top = (e.clientY - 13) + 'px';
+                });
+
+                document.body.addEventListener('mousedown', () => cursorDot.style.transform = 'scale(2)');
+                document.body.addEventListener('mouseup', () => cursorDot.style.transform = 'scale(1)');
+                document.body.classList.add('hide-cursor');
+            };
 
             // --- Game State & Data ---
             let currentState = 'initial';
@@ -1344,7 +1311,7 @@
             const departmentSounds = {
                 'garage': garageAudio, 'datalab': datalabAudio, 'lounge': loungeAudio, 'boiler-room': boilerRoomAudio
             };
-            
+
             // --- Data ---
              const headlines = [
                 // Fictional Lemi Vice
@@ -1486,7 +1453,7 @@
                 });
 
                 // Specifically fade out the menu theme when going to the lobby
-                if ((targetState === 'hq-lobby') && racecarSfxAudio && !racecarSfxAudio.paused) {
+                if ((targetState === 'hq-lobby') && !racecarSfxAudio.paused) {
                     let fadeOutInterval = setInterval(() => {
                         if (racecarSfxAudio.volume > 0.1) {
                             racecarSfxAudio.volume -= 0.1;
@@ -1812,20 +1779,22 @@
             datalabNavRight.addEventListener('click', () => { currentDatalabRoom = (currentDatalabRoom + 1) % datalabBackgrounds.length; setupDatalabRoom(currentDatalabRoom); });
 
             function setupGarageRoom(roomIndex) {
-                 departmentView.style.backgroundImage = `url(${garageBackgrounds[roomIndex]})`;
-                 if(roomIndex === 0) {
-                     garageNavDoor.classList.remove('hidden');
-                     garageSchematics.classList.remove('hidden');
-                     returnToBayButton.classList.add('hidden');
-                 } else {
-                     garageNavDoor.classList.add('hidden');
-                     garageSchematics.classList.add('hidden');
-                     returnToBayButton.classList.remove('hidden');
-                 }
+                 // Always show 2D backgrounds now, as 3D is removed
+                departmentView.style.backgroundImage = `url(${garageBackgrounds[roomIndex]})`;
+
+                if (roomIndex === 0) { // Main Bay (formerly 3D)
+                    garageNavDoor.classList.remove('hidden');
+                    garageSchematics.classList.remove('hidden');
+                    returnToBayButton.classList.add('hidden');
+                } else { // Secondary Bay
+                    garageNavDoor.classList.add('hidden');
+                    garageSchematics.classList.add('hidden');
+                    returnToBayButton.classList.remove('hidden');
+                }
             }
             garageNavDoor.addEventListener('click', () => { currentGarageRoom = 1; setupGarageRoom(1); });
             returnToBayButton.addEventListener('click', () => { currentGarageRoom = 0; setupGarageRoom(0); });
-
+            
             function setupLoungeRoom(roomIndex) {
                  departmentView.style.backgroundImage = `url(${loungeBackgrounds[roomIndex]})`;
                  if(roomIndex === 0) {
@@ -2161,6 +2130,7 @@
             
             const startBootSequence = () => {
                 handleUserInteraction().then(() => {
+                    document.body.classList.add('hide-cursor');
                     initialScreen.classList.add('hidden');
                     bootSeq.classList.remove('hidden');
                     currentState = 'boot';
@@ -2257,9 +2227,11 @@
             updateClock();
             
             hudBar.classList.add('hidden');
-        });
+            setupCursor();
+        };
+        
+        document.addEventListener('DOMContentLoaded', main);
     </script>
 </body>
 
 </html>
-
