@@ -203,7 +203,7 @@
             opacity: 0;
         }
         
-        #press-start {
+        #press-start, #initial-press-start {
             position: absolute;
             bottom: 20%;
             left: 50%;
@@ -213,6 +213,7 @@
             color: #EFEFEF;
             text-shadow: 0 0 10px #FF2D00;
             animation: blink 1s infinite;
+            cursor: pointer;
         }
 
         @keyframes slam-in {
@@ -1501,7 +1502,7 @@
                 });
 
                 // Specifically fade out the menu theme when going to the lobby
-                if ((targetState === 'hq-lobby') && racecarSfxAudio && !racecarSfxAudio.paused) {
+                if ((targetState === 'hq-lobby') && !racecarSfxAudio.paused) {
                     let fadeOutInterval = setInterval(() => {
                         if (racecarSfxAudio.volume > 0.1) {
                             racecarSfxAudio.volume -= 0.1;
