@@ -217,6 +217,9 @@
             height: 100%;
             background-color: #000;
             z-index: 100;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.5s ease-in-out;
         }
 
         #loading-icon {
@@ -975,6 +978,7 @@
 
     <div id="transition-overlay"></div>
 
+    <!-- HUD Bar -->
     <div id="hud-bar" class="hidden">
         <div id="hud-left">
             <img id="hud-logo" src="assets/redlinin_logo.png" alt="Redlinin Logo">
@@ -989,14 +993,17 @@
     </div>
 
 
+    <!-- Custom Cursor -->
     <div id="cursor-dot"></div>
     <div id="cursor-ring"></div>
     
+    <!-- Initial Screen -->
     <div id="initial-screen" style="width:100vw; height: 100vh; display: flex; justify-content:center; align-items:center;">
          <h1 id="initial-press-start" class="font-orbitron text-2xl" style="color: #EFEFEF; text-shadow: 0 0 10px #FF2D00; animation: blink 1s infinite;">ENTER</h1>
     </div>
 
 
+    <!-- Boot Sequence -->
     <div id="boot-sequence" class="hidden">
         <div id="lv-emblem-screen" class="boot-screen">
              <img src="assets/lemi_vice_logo.png" alt="Lemi Vice Emblem">
@@ -1006,27 +1013,35 @@
         </div>
     </div>
 
+    <!-- Main Title Screen -->
     <div id="title-screen" class="hidden">
         <img id="redlinin-logo" src="assets/redlinin_logo.png" alt="Redlinin Logo">
         <h1 id="press-start" class="hidden">PRESS START</h1>
     </div>
 
+    <!-- Main Menu -->
     <div id="main-menu" class="hidden" style="width: 100vw; height: 100vh;">
          <div id="menu-option-new-game" class="menu-option selected">NEW GAME</div>
          <div id="menu-option-settings" class="menu-option">DRIVER DATA</div>
     </div>
 
 
+    <!-- Loading Screen -->
     <div id="loading-screen" class="hidden">
         <div id="loading-icon"></div>
         <p id="loading-text">NOW LOADING</p>
     </div>
 
+    <!-- Main HQ Hub -->
     <div id="hq-lobby" class="hidden">
+        <!-- Hotspots are added dynamically by JS -->
+        
+        <!-- Boiler Room Puzzle Trigger -->
         <div id="boiler-room-hotspot" class="hotspot hidden" data-target="boiler-room">
              <div class="hotspot-label">ACCESS GRATE</div>
         </div>
 
+        <!-- Lobby Navigation Hotspots -->
         <div id="lobby-nav-1-to-2" class="lobby-nav hotspot" style="top: 40%; left: 47%; width: 120px; height: 120px;">
             <div class="hotspot-label" style="top: -30px; left: 50%; transform: translateX(-50%);">NEXT AREA</div>
         </div>
@@ -1040,10 +1055,12 @@
             <div class="hotspot-label">LOWER LEVEL</div>
         </div>
         
+        <!-- News Ticker -->
         <div id="news-ticker-container">
             <div id="news-ticker"><p></p></div>
         </div>
 
+        <!-- MP3 Player -->
         <div id="mp3-player">
             <div id="mp3-header">
                 <img src="assets/redlinin_logo.png" alt="Redlinin">
@@ -1073,24 +1090,30 @@
                     <button id="next-btn">⏭</button>
                 </div>
             </div>
-             <div id="puzzle-3" class="glitch-artifact" style="top: 5px; right: 5px; width:15px; height:15px;"></div>
+             <!-- Puzzle 3 -->
+            <div id="puzzle-3" class="glitch-artifact" style="top: 5px; right: 5px; width:15px; height:15px;"></div>
         </div>
 
     </div>
 
+    <!-- Department View -->
     <div id="department-view" class="hidden">
         <h2 id="department-header">DEPARTMENT</h2>
         <button id="back-button" class="department-button">RETURN TO HQ</button>
+        <!-- Puzzle 2 Placeholder -->
         <div id="puzzle-2" class="glitch-artifact hidden department-ui" style="top: 80%; left: 10%;"></div>
+        <!-- DATALAB UI -->
         <button id="datalab-nav-left" class="nav-button nav-left hidden department-ui">&lt;</button>
         <button id="datalab-nav-right" class="nav-button nav-right hidden department-ui">&gt;</button>
         <button id="access-terminal-button" class="hidden department-ui">ACCESS TERMINAL</button>
         <div id="ql-sim-hotspot" class="hotspot locked department-ui" style="top: 30%; left: 20%; width: 150px; height: 150px;" data-target="ql-sim"><div class="hotspot-label">LOCKED</div></div>
         <div id="rally-hotspot" class="hotspot locked department-ui" style="top: 60%; left: 60%; width: 120px; height: 120px;" data-target="rally"><div class="hotspot-label">LOCKED</div></div>
+        <!-- Garage UI -->
         <div id="garage-nav-door" class="hotspot hidden department-ui" style="top: 35%; left: 2%; width: 12%; height: 50%; border-radius: 10px;">
              <div class="hotspot-label">SECONDARY BAY</div>
         </div>
         <button id="return-to-bay-button" class="department-button return-button hidden department-ui">RETURN TO MAIN BAY</button>
+        <!-- Garage Schematics -->
         <div id="garage-schematics" class="hidden department-ui">
             <div class="schematic-hotspot hotspot" style="top: 50%; left: 50%; width: 100px; height: 50px;">
                  <div class="hotspot-label">FUSION ENGINE CORE</div>
@@ -1102,18 +1125,23 @@
                  <div class="hotspot-label">DOWNFORCE SPOILER</div>
             </div>
         </div>
+        <!-- Liquid Lounge UI -->
         <button id="lounge-nav-left" class="nav-button nav-left hidden department-ui">&lt;</button>
         <button id="lounge-nav-right" class="nav-button nav-right hidden department-ui">&gt;</button>
+        <!-- QL SIM UI -->
         <div id="ql-sim-cockpit" class="hidden department-ui">
             <div id="ql-hud">
-                </div>
+                <!-- QL Player will be injected here by JS -->
+            </div>
         </div>
+        <!-- Settings/Driver Data UI -->
         <div id="driver-data-screen" class="hidden department-ui">
              <h2>DRIVER DATA // SYSTEM SETTINGS</h2>
              <div class="data-block">
                  <h3>SESSION DATA</h3>
                  <div class="data-row"><span>DEPARTMENTS VISITED:</span><span id="data-visited">0 / 6</span></div>
                  <div class="data-row"><span>SECRETS UNLOCKED:</span><span id="data-secrets">0 / 3</span></div>
+                 <!-- Puzzle 1 -->
                  <div id="puzzle-1" class="glitch-artifact" style="top: 15%; right: 5%;"></div>
              </div>
              <div class="data-block">
@@ -1136,6 +1164,7 @@
                  </div>
              </div>
         </div>
+        <!-- Race Select UI -->
         <div id="race-select-screen" class="hidden department-ui">
              <div id="album-select-view">
                 <h2>SELECT ALBUM</h2>
@@ -1156,6 +1185,7 @@
         </div>
     </div>
 
+    <!-- Hacking Console -->
     <div id="hacking-console-container" class="hidden">
         <div id="console-window">
              <div id="console-output"></div>
@@ -1168,8 +1198,10 @@
     </div>
 
 
+    <!-- Notification Area -->
     <div id="notification" class="hidden"></div>
     
+    <!-- Ambient Audio -->
     <audio id="bootup-audio"><source src="assets/sfx/bootup_chime.mp3" type="audio/mpeg"></audio>
     <audio id="racecar-sfx-audio"><source src="assets/music/0-100_DreamCast_Version.mp3" type="audio/mpeg"></audio>
     <audio id="boiler-room-audio" loop><source src="assets/sfx/boiler_room_ambience.wav" type="audio/wav"></audio>
@@ -1250,6 +1282,14 @@
             const datalabBackgrounds = ['assets/datalab1.png', 'assets/datalab2.png', 'assets/datalab3.png'];
             const garageBackgrounds = ['assets/garage_bg1.png', 'assets/garage_bg2.png'];
             const loungeBackgrounds = ['assets/liquid_lounge_bg.png', 'assets/liquid_lounge_bg2.png'];
+            const loadingScreenBackgrounds = [
+                'assets/load_screen1.png',
+                'assets/load_screen2.png',
+                'assets/load_screen3.png',
+                'assets/load_screen4.png',
+                'assets/load_screen5.png'
+            ];
+            let currentLoadingScreenIndex = 0;
             const lockedDepartments = ['lounge', 'ql-sim', 'rally'];
             let createdHotspots = [];
 
@@ -1311,7 +1351,7 @@
             const departmentSounds = {
                 'garage': garageAudio, 'datalab': datalabAudio, 'lounge': loungeAudio, 'boiler-room': boilerRoomAudio
             };
-
+            
             // --- Data ---
              const headlines = [
                 // Fictional Lemi Vice
@@ -1441,6 +1481,11 @@
             
             const transition = (targetState, isReturn = false) => {
                 playSound('C2', '4n');
+
+                // Set and cycle the loading screen background
+                loadingScreen.style.backgroundImage = `url('${loadingScreenBackgrounds[currentLoadingScreenIndex]}')`;
+                currentLoadingScreenIndex = (currentLoadingScreenIndex + 1) % loadingScreenBackgrounds.length;
+
                 loadingScreen.classList.remove('hidden');
                 currentState = 'loading';
                 
@@ -2235,3 +2280,4 @@
 </body>
 
 </html>
+
