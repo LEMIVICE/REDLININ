@@ -29,7 +29,10 @@
             color: #EFEFEF;
             font-family: 'Roboto Condensed', sans-serif;
             overflow: hidden;
-            /* cursor: none; */ /* Temporarily re-enabled for debugging */
+        }
+
+        .hide-cursor {
+            cursor: none;
         }
 
         .font-orbitron {
@@ -279,7 +282,6 @@
             border: 2px solid rgba(0,0,0,0);
             transition: all 0.3s ease;
             box-shadow: 0 0 0px var(--accent-color);
-            cursor: none;
         }
 
         .hotspot:not(.locked):hover {
@@ -394,7 +396,6 @@
             background-color: #000;
             padding: 10px 20px;
             border-radius: 5px;
-            cursor: none;
             transition: all 0.3s ease;
             z-index: 10;
         }
@@ -460,7 +461,6 @@
             font-size: 2.5rem;
             color: #EFEFEF;
             text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
-            cursor: none;
             transition: all 0.3s ease;
             padding: 10px 20px;
             border: 2px solid transparent;
@@ -592,7 +592,6 @@
             background: #000;
             border: 1px solid var(--accent-color);
             outline: none;
-            cursor: none;
         }
 
         input[type="range"]::-webkit-slider-thumb {
@@ -601,7 +600,6 @@
             width: 15px;
             height: 15px;
             background: #FF2D00;
-            cursor: none;
             border: 1px solid #EFEFEF;
         }
 
@@ -616,7 +614,6 @@
             border: none;
             color: #EFEFEF;
             font-size: 1.2rem;
-            cursor: none;
             transition: color 0.2s ease;
         }
 
@@ -630,7 +627,6 @@
             width: 30px;
             height: 30px;
             background-color: #FF2D00;
-            cursor: none;
             z-index: 1000;
             animation: glitch-anim 1.5s infinite steps(8);
         }
@@ -745,7 +741,6 @@
             background: none;
             border: none;
             font-size: 2rem;
-            cursor: none;
         }
         
         /* DATALAB & LOUNGE Navigation */
@@ -758,7 +753,6 @@
             color: var(--accent-color);
             padding: 20px 10px;
             font-size: 2rem;
-            cursor: none;
             z-index: 160;
             transition: all 0.2s ease;
         }
@@ -781,7 +775,6 @@
              padding: 10px 20px;
              border: 2px solid #FF2D00;
              border-radius: 5px;
-             cursor: none;
              transition: all 0.3s ease;
         }
         #access-terminal-button:hover {
@@ -886,7 +879,6 @@
             width: 30px;
             height: 30px;
             border: 2px solid #EFEFEF;
-            cursor: none;
         }
         .swatch.selected {
              box-shadow: 0 0 10px #FFF;
@@ -923,7 +915,6 @@
             padding: 15px 30px;
             margin: 10px;
             border: 2px solid var(--accent-color);
-            cursor: none;
             transition: all 0.2s ease;
         }
         .album-choice:hover {
@@ -956,7 +947,6 @@
         .track-item {
             padding: 10px;
             font-family: 'Orbitron', sans-serif;
-            cursor: none;
             border-bottom: 1px solid #333;
         }
 
@@ -2255,10 +2245,10 @@
             
             const startBootSequence = () => {
                 handleUserInteraction().then(() => {
+                    document.body.classList.add('hide-cursor');
                     initialScreen.classList.add('hidden');
                     bootSeq.classList.remove('hidden');
                     currentState = 'boot';
-                    bootupAudio.volume = 1.0; 
                     bootupAudio.play();
                     
                     setTimeout(() => {
