@@ -1495,7 +1495,7 @@
                 playSound('C2', '4n');
 
                 // Set and cycle the loading screen background
-                loadingScreen.style.backgroundImage = `url('${loadingScreenBackgrounds[currentLoadingScreenIndex]}')`;
+                loadingScreen.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('${loadingScreenBackgrounds[currentLoadingScreenIndex]}')`;
                 currentLoadingScreenIndex = (currentLoadingScreenIndex + 1) % loadingScreenBackgrounds.length;
 
                 loadingScreen.classList.remove('hidden');
@@ -2292,4 +2292,3 @@
 </body>
 
 </html>
-
