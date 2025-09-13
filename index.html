@@ -183,11 +183,24 @@
             opacity: 0;
         }
         
-        #press-start, #initial-press-start {
+        #initial-press-start {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: #EFEFEF;
+            text-shadow: 0 0 10px #FF2D00;
+            animation: blink 1s infinite;
+            cursor: pointer;
+        }
+        
+        #press-start {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
             font-family: 'Orbitron', sans-serif;
             font-size: 1.5rem;
             color: #EFEFEF;
@@ -2279,6 +2292,4 @@
 </body>
 
 </html>
-
-
 
