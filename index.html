@@ -7,14 +7,6 @@
     <title>REDLININ' RACING HQ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script type="importmap">
-        {
-            "imports": {
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/"
-            }
-        }
-    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
@@ -38,15 +30,6 @@
 
         .hidden {
             display: none !important;
-        }
-        
-        #garage-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 1;
         }
         
         /* CRT Scanline Overlay */
@@ -200,7 +183,7 @@
             opacity: 0;
         }
         
-        #press-start, #initial-press-start {
+        #press-start {
             position: absolute;
             bottom: 20%;
             left: 50%;
@@ -210,7 +193,6 @@
             color: #EFEFEF;
             text-shadow: 0 0 10px #FF2D00;
             animation: blink 1s infinite;
-            cursor: pointer;
         }
 
         @keyframes slam-in {
@@ -280,6 +262,7 @@
             border: 2px solid rgba(0,0,0,0);
             transition: all 0.3s ease;
             box-shadow: 0 0 0px var(--accent-color);
+            cursor: none;
         }
 
         .hotspot:not(.locked):hover {
@@ -348,6 +331,7 @@
             height: 100vh;
             background-size: cover;
             background-position: center;
+            padding-top: 50px; /* Account for HUD */
         }
         
         #department-header {
@@ -363,7 +347,6 @@
              border-top: 2px solid #FF2D00;
              border-bottom: 2px solid #FF2D00;
              opacity: 0; /* for animation */
-             z-index: 10;
         }
         
         .header-animate {
@@ -394,8 +377,8 @@
             background-color: #000;
             padding: 10px 20px;
             border-radius: 5px;
+            cursor: none;
             transition: all 0.3s ease;
-            z-index: 10;
         }
         
         #back-button {
@@ -425,7 +408,6 @@
             pointer-events: none;
             box-shadow: 0 0 5px var(--accent-color);
             transition: transform 0.1s ease-out;
-            visibility: hidden;
         }
         
         #cursor-ring {
@@ -437,12 +419,10 @@
             z-index: 9999;
             pointer-events: none;
             transition: transform 0.2s ease-out, opacity 0.2s ease-out;
-            visibility: hidden;
         }
         
-        body.hide-cursor:hover #cursor-ring,
-        body.hide-cursor:hover #cursor-dot {
-            visibility: visible;
+        body:hover #cursor-ring {
+            opacity: 1;
         }
         
         /* Main Menu */
@@ -462,6 +442,7 @@
             font-size: 2.5rem;
             color: #EFEFEF;
             text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+            cursor: none;
             transition: all 0.3s ease;
             padding: 10px 20px;
             border: 2px solid transparent;
@@ -593,6 +574,7 @@
             background: #000;
             border: 1px solid var(--accent-color);
             outline: none;
+            cursor: none;
         }
 
         input[type="range"]::-webkit-slider-thumb {
@@ -601,6 +583,7 @@
             width: 15px;
             height: 15px;
             background: #FF2D00;
+            cursor: none;
             border: 1px solid #EFEFEF;
         }
 
@@ -615,6 +598,7 @@
             border: none;
             color: #EFEFEF;
             font-size: 1.2rem;
+            cursor: none;
             transition: color 0.2s ease;
         }
 
@@ -628,6 +612,7 @@
             width: 30px;
             height: 30px;
             background-color: #FF2D00;
+            cursor: none;
             z-index: 1000;
             animation: glitch-anim 1.5s infinite steps(8);
         }
@@ -742,6 +727,7 @@
             background: none;
             border: none;
             font-size: 2rem;
+            cursor: none;
         }
         
         /* DATALAB & LOUNGE Navigation */
@@ -754,6 +740,7 @@
             color: var(--accent-color);
             padding: 20px 10px;
             font-size: 2rem;
+            cursor: none;
             z-index: 160;
             transition: all 0.2s ease;
         }
@@ -776,6 +763,7 @@
              padding: 10px 20px;
              border: 2px solid #FF2D00;
              border-radius: 5px;
+             cursor: none;
              transition: all 0.3s ease;
         }
         #access-terminal-button:hover {
@@ -880,6 +868,7 @@
             width: 30px;
             height: 30px;
             border: 2px solid #EFEFEF;
+            cursor: none;
         }
         .swatch.selected {
              box-shadow: 0 0 10px #FFF;
@@ -916,6 +905,7 @@
             padding: 15px 30px;
             margin: 10px;
             border: 2px solid var(--accent-color);
+            cursor: none;
             transition: all 0.2s ease;
         }
         .album-choice:hover {
@@ -948,6 +938,7 @@
         .track-item {
             padding: 10px;
             font-family: 'Orbitron', sans-serif;
+            cursor: none;
             border-bottom: 1px solid #333;
         }
 
@@ -1223,11 +1214,8 @@
     <audio id="datalab-audio" loop><source src="assets/sfx/datalab_ambience.wav" type="audio/wav"></audio>
     <audio id="lounge-audio" loop><source src="assets/sfx/lounge_ambience.wav" type="audio/wav"></audio>
 
-    <script type="module">
-        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-        const main = (GLTFLoader, OrbitControls) => {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
             // --- DOM Element Cache ---
             const initialScreen = document.getElementById('initial-screen');
             const initialPressStart = document.getElementById('initial-press-start');
@@ -1357,10 +1345,6 @@
                 'garage': garageAudio, 'datalab': datalabAudio, 'lounge': loungeAudio, 'boiler-room': boilerRoomAudio
             };
             
-            // --- Three.js Garage Scene ---
-            let garageScene, garageCamera, garageRenderer, garageModel, garageControls;
-            let garageAnimationId;
-
             // --- Data ---
              const headlines = [
                 // Fictional Lemi Vice
@@ -1502,7 +1486,7 @@
                 });
 
                 // Specifically fade out the menu theme when going to the lobby
-                if ((targetState === 'hq-lobby') && !racecarSfxAudio.paused) {
+                if ((targetState === 'hq-lobby') && racecarSfxAudio && !racecarSfxAudio.paused) {
                     let fadeOutInterval = setInterval(() => {
                         if (racecarSfxAudio.volume > 0.1) {
                             racecarSfxAudio.volume -= 0.1;
@@ -1828,88 +1812,19 @@
             datalabNavRight.addEventListener('click', () => { currentDatalabRoom = (currentDatalabRoom + 1) % datalabBackgrounds.length; setupDatalabRoom(currentDatalabRoom); });
 
             function setupGarageRoom(roomIndex) {
-                if(roomIndex === 0) {
-                    // 3D Scene
-                    departmentView.style.backgroundImage = 'none';
-                    if (!garageRenderer) initGarageScene();
-                    garageNavDoor.classList.remove('hidden');
-                    garageSchematics.classList.remove('hidden');
-                    returnToBayButton.classList.add('hidden');
-                    document.getElementById('garage-canvas').classList.remove('hidden');
-                    animateGarage();
-                } else {
-                    // 2D Scene
-                    if(garageAnimationId) cancelAnimationFrame(garageAnimationId);
-                    document.getElementById('garage-canvas').classList.add('hidden');
-                    departmentView.style.backgroundImage = `url(${garageBackgrounds[roomIndex]})`;
-                    garageNavDoor.classList.add('hidden');
+                 departmentView.style.backgroundImage = `url(${garageBackgrounds[roomIndex]})`;
+                 if(roomIndex === 0) {
+                     garageNavDoor.classList.remove('hidden');
+                     garageSchematics.classList.remove('hidden');
+                     returnToBayButton.classList.add('hidden');
+                 } else {
+                     garageNavDoor.classList.add('hidden');
                      garageSchematics.classList.add('hidden');
                      returnToBayButton.classList.remove('hidden');
                  }
             }
             garageNavDoor.addEventListener('click', () => { currentGarageRoom = 1; setupGarageRoom(1); });
             returnToBayButton.addEventListener('click', () => { currentGarageRoom = 0; setupGarageRoom(0); });
-            
-            function initGarageScene() {
-                garageScene = new THREE.Scene();
-                garageScene.background = new THREE.Color(0x101010);
-
-                garageCamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-                garageCamera.position.set(0, 1.5, 5);
-
-                garageRenderer = new THREE.WebGLRenderer({ antialias: true });
-                garageRenderer.setSize(window.innerWidth, window.innerHeight);
-                garageRenderer.setPixelRatio(window.devicePixelRatio);
-                
-                const canvas = garageRenderer.domElement;
-                canvas.id = 'garage-canvas';
-                departmentView.prepend(canvas);
-
-                garageControls = new OrbitControls(garageCamera, garageRenderer.domElement);
-                garageControls.enableDamping = true;
-                garageControls.dampingFactor = 0.05;
-                garageControls.screenSpacePanning = false;
-                garageControls.minDistance = 3;
-                garageControls.maxDistance = 8;
-                garageControls.target.set(0, 1, 0);
-
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-                garageScene.add(ambientLight);
-
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-                directionalLight.position.set(5, 5, 5);
-                garageScene.add(directionalLight);
-                
-                const loader = new GLTFLoader();
-                loader.load('assets/2021_BMW_M4_GT3.glb', (gltf) => {
-                    garageModel = gltf.scene;
-                    garageModel.scale.set(1.5, 1.5, 1.5);
-                    garageModel.position.y = 0.5;
-                    garageScene.add(garageModel);
-                }, undefined, (error) => {
-                    console.error('An error happened while loading the 3D model:', error);
-                });
-                
-                 window.addEventListener('resize', onWindowResize, false);
-            }
-            
-            function onWindowResize() {
-                if(garageCamera && garageRenderer) {
-                    garageCamera.aspect = window.innerWidth / window.innerHeight;
-                    garageCamera.updateProjectionMatrix();
-                    garageRenderer.setSize(window.innerWidth, window.innerHeight);
-                }
-            }
-
-            function animateGarage() {
-                garageAnimationId = requestAnimationFrame(animateGarage);
-                if (garageModel) {
-                    garageModel.rotation.y += 0.005;
-                }
-                garageControls.update();
-                garageRenderer.render(garageScene, garageCamera);
-            }
-
 
             function setupLoungeRoom(roomIndex) {
                  departmentView.style.backgroundImage = `url(${loungeBackgrounds[roomIndex]})`;
@@ -2246,10 +2161,10 @@
             
             const startBootSequence = () => {
                 handleUserInteraction().then(() => {
-                    document.body.classList.add('hide-cursor');
                     initialScreen.classList.add('hidden');
                     bootSeq.classList.remove('hidden');
                     currentState = 'boot';
+                    bootupAudio.volume = 1.0; 
                     bootupAudio.play();
                     
                     setTimeout(() => {
@@ -2342,10 +2257,7 @@
             updateClock();
             
             hudBar.classList.add('hidden');
-        };
-
-        // Run main script after modules are imported
-        main(GLTFLoader, OrbitControls);
+        });
     </script>
 </body>
 
